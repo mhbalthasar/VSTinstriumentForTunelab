@@ -30,9 +30,6 @@ jobs:
           - os: macos-15-intel
             rid: osx-x64
             platform: macos
-          - os: macos-15
-            rid: osx-arm64
-            platform: macos
 
     steps:
       - name: Checkout extension
@@ -97,6 +94,19 @@ jobs:
             -c Release -r "$BRIDGE_RID" --self-contained true \
             -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2" \
             -o "artifacts/bridge/$BRIDGE_RID" --nologo -v:q
+
+      - name: Publish osx-arm64 bridge (build-only)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          # GitHub-hosted Apple-silicon runners are not available to this
+          # repository, so cross-publish the arm64 helper on the Intel runner.
+          # Tests still run against the native x64 helper.
+          rm -rf Bridge/Process/bin Bridge/Process/obj
+          dotnet publish Bridge/Process/TuneLab.VstInstruments.Bridge.csproj \
+            -c Release -r osx-arm64 --self-contained true \
+            -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2" \
+            -o "artifacts/bridge/osx-arm64" --nologo -v:q
 
       - name: Publish 32-bit Windows bridge
         if: matrix.platform == 'windows'

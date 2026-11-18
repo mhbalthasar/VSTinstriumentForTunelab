@@ -1,9 +1,10 @@
 # CI
 
 The workflow is in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
-The project is initialized as a local Git repository, but no GitHub remote is
-configured yet, so the workflow has not been triggered from GitHub. The
-Linux/x64 path has been reproduced on the local Linux debugger.
+The project is connected to
+`github.com/mhbalthasar/VSTinstriumentForTunelab`; pushes to `main` run the
+matrix and the packaging job. The Linux/x64 path has also been reproduced on
+the local Linux debugger.
 
 ## Matrix
 
@@ -11,8 +12,7 @@ Linux/x64 path has been reproduced on the local Linux debugger.
 | --- | --- | --- |
 | `ubuntu-latest` | `linux-x64` | yes, under Xvfb (X11) |
 | `windows-latest` | `win-x64`, plus `win-x86` helper | build-only (Windows UI is covered by the local harness) |
-| `macos-15-intel` | `osx-x64` | build-only (Cocoa UI needs a GUI session) |
-| `macos-15` | `osx-arm64` | build-only (Cocoa UI needs a GUI session) |
+| `macos-15-intel` | `osx-x64`, plus `osx-arm64` build-only | build-only (Cocoa UI needs a GUI session) |
 
 Each job:
 
@@ -23,7 +23,9 @@ Each job:
 4. builds `TuneLab.SDK` (its project reference builds `TuneLab.Foundation`);
 5. builds the extension with `TuneLabSdkRoot=$GITHUB_WORKSPACE/TuneLab2`;
 6. publishes a self-contained bridge for the matrix RID; the Windows job also
-   publishes `win-x86`;
+   publishes `win-x86`, and the Intel macOS job cross-publishes `osx-arm64`
+   (build-only, because GitHub-hosted Apple-silicon runners are not available
+   to this repository);
 7. builds the test harness;
 8. compiles the synthetic LV2 bundle for that platform;
 9. runs the harness.
