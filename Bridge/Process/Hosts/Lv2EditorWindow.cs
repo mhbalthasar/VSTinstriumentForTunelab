@@ -215,11 +215,7 @@ internal sealed unsafe class Lv2EditorWindow : ILv2EditorWindow
 
         mLibrary = NativeLibrary.Load(mSlot.UiBinary!);
 
-        if (!NativeLibrary.TryGetExport(mLibrary, "lv2ui_descriptor", out IntPtr descriptorEntry))
-            return;
-
-        var descriptorFn = (delegate* unmanaged[Cdecl]<uint, IntPtr>)descriptorEntry;
-        IntPtr descriptor = descriptorFn(0);
+        IntPtr descriptor = Lv2Native.FindUiDescriptor(mLibrary, mSlot.Plugin.UiUri);
 
         if (descriptor == IntPtr.Zero)
             return;

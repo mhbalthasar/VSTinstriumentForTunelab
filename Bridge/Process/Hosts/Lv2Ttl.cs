@@ -21,6 +21,7 @@ internal static class Lv2Ttl
     const string Lv2Plugin = "http://lv2plug.in/ns/lv2core#Plugin";
     const string Lv2InstrumentPlugin = "http://lv2plug.in/ns/lv2core#InstrumentPlugin";
     const string Lv2Binary = "http://lv2plug.in/ns/lv2core#binary";
+    const string UiUi = "http://lv2plug.in/ns/extensions/ui#ui";
     const string Lv2Port = "http://lv2plug.in/ns/lv2core#port";
     const string Lv2Index = "http://lv2plug.in/ns/lv2core#index";
     const string Lv2Symbol = "http://lv2plug.in/ns/lv2core#symbol";
@@ -138,6 +139,7 @@ internal static class Lv2Ttl
                     || t.Object.Value.EndsWith("#instrument", StringComparison.Ordinal)));
 
         string? binary = triples.FirstOrDefault(t => t.Predicate == Lv2Binary)?.Object.Value;
+        string? uiUri = triples.FirstOrDefault(t => t.Predicate == UiUi && !t.Object.IsLiteral)?.Object.Value;
 
         if (string.IsNullOrWhiteSpace(binary))
             return null;
@@ -184,6 +186,7 @@ internal static class Lv2Ttl
             Name = name,
             Vendor = vendor,
             BinaryPath = binaryPath,
+            UiUri = uiUri ?? string.Empty,
             BundlePath = bundleDirectory,
             Ports = ports,
             IsInstrument = true,
@@ -667,6 +670,7 @@ internal sealed class Lv2PluginDescription
     public string Name = string.Empty;
     public string Vendor = string.Empty;
     public string BinaryPath = string.Empty;
+    public string UiUri = string.Empty;
     public string BundlePath = string.Empty;
     public bool IsInstrument;
     public List<Lv2PortDescription> Ports = [];

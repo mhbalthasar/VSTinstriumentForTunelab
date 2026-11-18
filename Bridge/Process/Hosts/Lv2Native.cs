@@ -159,6 +159,38 @@ internal static unsafe class Lv2Native
 
     // extension_data() is a UI descriptor entry point. Querying it before the
     // first idle call is allowed by the LV2 UI specification.
+    // LV2 UI binaries may expose many descriptors from one shared library.
+    // Pick the descriptor whose URI matches the plugin's ui:ui object; index 0
+    // is only a fallback for bundles that omit that link.
+    public static IntPtr FindUiDescriptor(IntPtr library, string uiUri)
+    {
+        if (library == IntPtr.Zero
+            || !NativeLibrary.TryGetExport(library, "lv2ui_descriptor", out IntPtr entry))
+        {
+            return IntPtr.Zero;
+        }
+
+        var descriptorFn = (delegate* unmanaged[Cdecl]<uint, IntPtr>)entry;
+
+        if (string.IsNullOrEmpty(uiUri))
+            return descriptorFn(0);
+
+        for (uint index = 0; index < 4096; index++)
+        {
+            IntPtr candidate = descriptorFn(index);
+
+            if (candidate == IntPtr.Zero)
+                break;
+
+            string uri = Marshal.PtrToStringUTF8(Marshal.ReadIntPtr(candidate)) ?? string.Empty;
+
+            if (string.Equals(uri, uiUri, StringComparison.Ordinal))
+                return candidate;
+        }
+
+        return IntPtr.Zero;
+    }
+
     public static IntPtr GetUiIdleInterface(IntPtr extensionData)
     {
         if (extensionData == IntPtr.Zero)
