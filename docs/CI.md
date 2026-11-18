@@ -11,8 +11,8 @@ Linux/x64 path has been reproduced on the local Linux debugger.
 | --- | --- | --- |
 | `ubuntu-latest` | `linux-x64` | yes, under Xvfb (X11) |
 | `windows-latest` | `win-x64`, plus `win-x86` helper | build-only (Windows UI is covered by the local harness) |
-| `macos-13` | `osx-x64` | build-only (Cocoa UI needs a GUI session) |
-| `macos-14` | `osx-arm64` | build-only (Cocoa UI needs a GUI session) |
+| `macos-15-intel` | `osx-x64` | build-only (Cocoa UI needs a GUI session) |
+| `macos-15` | `osx-arm64` | build-only (Cocoa UI needs a GUI session) |
 
 Each job:
 
@@ -170,8 +170,8 @@ echo 'export PATH="$HOME/.dotnet:$PATH"' >> ~/.bashrc
 echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.bashrc
 ```
 
-Then download the runner bundle from the repositoryâ€™s **Settings â†?Actions â†?
-Runners â†?New self-hosted runner** page, configure it with the
+Then download the runner bundle from the repositoryâ€™s **Settings ï¿½?Actions ï¿½?
+Runners ï¿½?New self-hosted runner** page, configure it with the
 `linux-x64-debugger` label, and install it as a service:
 
 ```bash

@@ -154,8 +154,8 @@ For development the single 248 MB package is acceptable; before release choose
 | --- | --- | --- | --- |
 | win-x64 | windows-latest | extension + bridge + win-x86 | synthetic LV2; optional real CLAP/VST2/VST3 |
 | linux-x64 | ubuntu-latest | extension + bridge | synthetic LV2 + real LSP Sampler Mono X11 UI |
-| osx-x64 | macos-13 | extension + bridge | synthetic LV2, UI skipped |
-| osx-arm64 | macos-14 | extension + bridge | synthetic LV2, UI skipped |
+| osx-x64 | macos-15-intel | extension + bridge | synthetic LV2, UI skipped |
+| osx-arm64 | macos-15 | extension + bridge | synthetic LV2, UI skipped |
 
 win-arm64/linux-arm64 are published locally but not part of the hosted CI
 matrix yet.
