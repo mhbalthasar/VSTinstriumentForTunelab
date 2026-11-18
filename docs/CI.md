@@ -71,6 +71,21 @@ The LV2 fixture covers scan, load, atom MIDI, audio, control, state, worker
 requirements, options/buf-size requirements and (where the platform supports
 it) UI open/close.
 
+## Publishing this repository
+
+The project is already committed on `main`. To connect it to GitHub, create an
+empty repository (do not add a README) and push:
+
+```powershell
+$git = "C:\Users\balthasar\AppData\Local\GitHubDesktop\app-3.6.6\resources\app\git\cmd\git.exe"
+& $git remote add origin https://github.com/<owner>/<repo>.git
+& $git push -u origin main
+```
+
+Use GitHub Desktop's **Publish repository** command if you prefer the GUI.
+Once the push lands, `.github/workflows/ci.yml` runs on `main`; the
+`package-tlx` job uploads the `.tlx` artifact after all matrix jobs pass.
+
 ## GitHub secrets
 
 Do not commit plugin paths or SSH credentials. Add plugin paths as repository
