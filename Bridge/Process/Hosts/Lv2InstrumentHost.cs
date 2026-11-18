@@ -73,7 +73,10 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
             IntPtr descriptor = IntPtr.Zero;
             var seenUris = new List<string>();
 
-            for (uint index = 0; index < 128; index++)
+            // Bundles such as LSP expose hundreds of plugins from one binary.
+            // The list is null-terminated; this cap only protects against a
+            // broken descriptor function that never returns null.
+            for (uint index = 0; index < 4096; index++)
             {
                 IntPtr candidate = descriptorFn(index);
 
