@@ -227,6 +227,10 @@ jobs:
         shell: pwsh
         run: .\publish-bridges.ps1 -Configuration Release
 
+      - name: Build TuneLab SDK
+        shell: pwsh
+        run: dotnet build TuneLab2/TuneLab.SDK/TuneLab.SDK.csproj -c Release
+
       - name: Pack extension
         shell: pwsh
         run: .\pack.ps1 -SkipBridges -Configuration Release -TuneLabSdkRoot "$env:GITHUB_WORKSPACE\TuneLab2"

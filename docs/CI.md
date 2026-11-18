@@ -34,8 +34,9 @@ After the matrix succeeds, the `package-tlx` job runs on `windows-latest`:
 
 1. publishes all seven self-contained bridge RIDs with
    `publish-bridges.ps1 -Configuration Release`;
-2. packs `dist/VSTinstriumentForTunelab.tlx` with `pack.ps1 -SkipBridges`;
-3. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
+2. builds `TuneLab.SDK` in Release so the extension can resolve its references;
+3. packs `dist/VSTinstriumentForTunelab.tlx` with `pack.ps1 -SkipBridges`;
+4. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
 
 The Windows job uses MSVC (`ilammy/msvc-dev-cmd`) to compile the LV2
 fixture. Linux needs `xvfb`, `libx11-dev` and `gcc`; `lsp-plugins-lv2` is
