@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: LiuYunPlayer/TuneLab
-          ref: 6cff736
+          ref: 6cff736d63a403d06c51c2cf6db4474779e1cc57
           path: TuneLab2
 
       - name: Setup .NET 8
@@ -205,7 +205,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: LiuYunPlayer/TuneLab
-          ref: 6cff736
+          ref: 6cff736d63a403d06c51c2cf6db4474779e1cc57
           path: TuneLab2
 
       - name: Setup .NET 8

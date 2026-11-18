@@ -18,7 +18,7 @@ Each job:
 
 1. checks out this extension;
 2. checks out the public TuneLab SDK:
-   `LiuYunPlayer/TuneLab` at `6cff736`, path `TuneLab2`;
+   `LiuYunPlayer/TuneLab` at `6cff736d63a403d06c51c2cf6db4474779e1cc57`, path `TuneLab2`;
 3. installs .NET 8;
 4. builds `TuneLab.SDK` (its project reference builds `TuneLab.Foundation`);
 5. builds the extension with `TuneLabSdkRoot=$GITHUB_WORKSPACE/TuneLab2`;
@@ -170,8 +170,8 @@ echo 'export PATH="$HOME/.dotnet:$PATH"' >> ~/.bashrc
 echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.bashrc
 ```
 
-Then download the runner bundle from the repositoryâ€™s **Settings â†’ Actions â†’
-Runners â†’ New self-hosted runner** page, configure it with the
+Then download the runner bundle from the repositoryâ€™s **Settings â†?Actions â†?
+Runners â†?New self-hosted runner** page, configure it with the
 `linux-x64-debugger` label, and install it as a service:
 
 ```bash
