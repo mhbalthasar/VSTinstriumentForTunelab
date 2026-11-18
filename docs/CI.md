@@ -1,8 +1,8 @@
 # CI
 
 The workflow is in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
-It is ready for GitHub Actions; it has not been triggered from GitHub yet
-because this workspace is not currently connected to a GitHub remote. The
+The project is initialized as a local Git repository, but no GitHub remote is
+configured yet, so the workflow has not been triggered from GitHub. The
 Linux/x64 path has been reproduced on the local Linux debugger.
 
 ## Matrix
@@ -27,6 +27,13 @@ Each job:
 7. builds the test harness;
 8. compiles the synthetic LV2 bundle for that platform;
 9. runs the harness.
+
+After the matrix succeeds, the `package-tlx` job runs on `windows-latest`:
+
+1. publishes all seven self-contained bridge RIDs with
+   `publish-bridges.ps1 -Configuration Release`;
+2. packs `dist/VSTinstriumentForTunelab.tlx` with `pack.ps1 -SkipBridges`;
+3. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
 
 The Windows job uses MSVC (`ilammy/msvc-dev-cmd`) to compile the LV2
 fixture. Linux needs `xvfb`, `libx11-dev` and `gcc`; `lsp-plugins-lv2` is

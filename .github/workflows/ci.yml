@@ -152,7 +152,7 @@ jobs:
           TUNELAB_VSTI_CI: "1"
           TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
         run: |
-          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge/$BRIDGE_RID"
+          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
           Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-xvfb.log 2>&1 &
           XVFB_PID=$!
           trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
@@ -168,7 +168,7 @@ jobs:
           TUNELAB_VSTI_SKIP_UI: "1"
           TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test macOS.lv2
         run: |
-          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge/$BRIDGE_RID"
+          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
           dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
 
       - name: Run tests (Windows)
@@ -179,7 +179,7 @@ jobs:
           TUNELAB_VSTI_SKIP_UI: "1"
           TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test.lv2
         run: |
-          export TUNELAB_VSTI_BRIDGE_DIR="${{ github.workspace }}/artifacts/bridge/$BRIDGE_RID"
+          export TUNELAB_VSTI_BRIDGE_DIR="${{ github.workspace }}/artifacts/bridge"
           dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
 
       - name: Upload test artifacts
@@ -191,3 +191,40 @@ jobs:
             artifacts/bridge
             TestHarness/bin/Release/net8.0
           if-no-files-found: warn
+
+  package:
+    name: package-tlx
+    needs: build-and-test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout extension
+        uses: actions/checkout@v4
+
+      - name: Checkout TuneLab SDK
+        uses: actions/checkout@v4
+        with:
+          repository: LiuYunPlayer/TuneLab
+          ref: 6cff736
+          path: TuneLab2
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish all bridge RIDs
+        shell: pwsh
+        run: .\publish-bridges.ps1 -Configuration Release
+
+      - name: Pack extension
+        shell: pwsh
+        run: .\pack.ps1 -SkipBridges -Configuration Release -TuneLabSdkRoot "$env:GITHUB_WORKSPACE\TuneLab2"
+
+      - name: Upload extension package
+        uses: actions/upload-artifact@v4
+        with:
+          name: VSTinstriumentForTunelab-tlx
+          path: dist/VSTinstriumentForTunelab.tlx
+          if-no-files-found: error
+          retention-days: 14
