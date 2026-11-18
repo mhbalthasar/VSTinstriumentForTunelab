@@ -41,6 +41,13 @@
     <Compile Remove="TestHarness\**" />
     <None Remove="TestHarness\**" />
     <Content Remove="TestHarness\**" />
+    <!-- CI checks out the TuneLab SDK into TuneLab2/ inside this repository.
+         Exclude it from this project's default compile glob; the SDK has its
+         own projects and must not be compiled as part of the extension. -->
+    <Compile Remove="TuneLab2\**" />
+    <None Remove="TuneLab2\**" />
+    <Content Remove="TuneLab2\**" />
+    <EmbeddedResource Remove="TuneLab2\**" />
   </ItemGroup>
 
   <ItemGroup>

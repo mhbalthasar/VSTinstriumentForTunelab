@@ -31,6 +31,9 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# SDK checkout used by CI (host-provided, not part of this repository)
+TuneLab2/
+
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
