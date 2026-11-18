@@ -71,6 +71,7 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
 
             var descriptorFn = (delegate* unmanaged[Cdecl]<uint, IntPtr>)entry;
             IntPtr descriptor = IntPtr.Zero;
+            var seenUris = new List<string>();
 
             for (uint index = 0; index < 128; index++)
             {
@@ -80,6 +81,7 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
                     break;
 
                 string uri = Marshal.PtrToStringUTF8(Marshal.ReadIntPtr(candidate)) ?? string.Empty;
+                seenUris.Add(uri);
 
                 if (string.Equals(uri, plugin.Uri, StringComparison.Ordinal))
                 {
@@ -91,7 +93,12 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
             if (descriptor == IntPtr.Zero)
             {
                 NativeLibrary.Free(library);
-                return InstrumentLoadOutcome.Fail("the LV2 descriptor for '" + plugin.Uri + "' was not found");
+                string seen = seenUris.Count == 0
+                    ? "none"
+                    : string.Join(", ", seenUris.Take(8)) + (seenUris.Count > 8 ? ", ..." : "");
+                return InstrumentLoadOutcome.Fail(
+                    "the LV2 descriptor for '" + plugin.Uri + "' was not found in '" +
+                    plugin.BinaryPath + "' (descriptors: " + seenUris.Count + "; " + seen + ")");
             }
 
             Debug("descriptor found");
