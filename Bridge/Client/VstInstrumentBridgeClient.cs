@@ -221,7 +221,7 @@ public sealed class VstInstrumentBridgeClient : IDisposable
             return false;
         }
 
-        string pipeName = BridgeProtocol.PipeName + "-" + mRid + "-" + Environment.ProcessId;
+        string pipeName = BridgeProtocol.PipeNameFor(mRid, Environment.ProcessId);
         string inName = pipeName + ".in";
         string outName = pipeName + ".out";
 

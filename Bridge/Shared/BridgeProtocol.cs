@@ -26,6 +26,16 @@ public static class BridgeProtocol
     //   ours:    TuneLab.VstInstrumentBridge / tunelab-vstinstrument-bridge / .tlvsti
     public const string PipeName = "TuneLab.VstInstrumentBridge";
 
+    // macOS puts named-pipe sockets under /var/folders/.../T and the kernel
+    // limits the whole path to 104 bytes. The full product name plus RID and
+    // PID exceeds that limit on GitHub's runners, so Unix uses a short alias.
+    // Windows keeps the descriptive name.
+    public static string PipeNameFor(string rid, int processId)
+    {
+        string suffix = rid + "-" + processId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return OperatingSystem.IsWindows() ? PipeName + "-" + suffix : "tlvsti-" + suffix;
+    }
+
     // Bump only for a layout/meaning change. Additive fields do not bump.
     public const int ProtocolVersion = 1;
 
