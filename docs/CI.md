@@ -6,6 +6,22 @@ The project is connected to
 matrix and the packaging job. The Linux/x64 path has also been reproduced on
 the local Linux debugger.
 
+## Verified run
+
+The first full run on commit `fa986d3` passed on all hosted jobs:
+
+- `win-x64`: success, including the synthetic x86 LV2 helper test
+- `linux-x64`: success, including the real LSP Sampler Mono X11 UI test
+- `osx-x64`: success; `osx-arm64` bridge cross-published
+- `package-tlx`: success
+
+Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44317272310>
+
+The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,626,775 bytes
+(243.8 MiB); SHA-256
+`785bcc208d3824d6321eba41503bf4f6e34be604019cc809d975055d9d33b592`.
+The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
+
 ## Matrix
 
 | Runner | RID | LV2 UI test |
