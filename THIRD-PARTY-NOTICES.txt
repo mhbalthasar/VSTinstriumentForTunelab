@@ -36,8 +36,8 @@ in this project differ from that project on purpose:
   ownvst3.tlhost (upstream)    -> ownvst3.tlvsti
   TUNELAB_BRIDGE_DIR           -> TUNELAB_VSTI_BRIDGE_DIR
 
-If a future phase adds a native shim (VST3/LV2/AU), its license and notices
-must be added here before distribution.
+The VST3/AU native host is covered above. If a future phase adds another
+native shim, its license and notices must be added here before distribution.
 
 ===== OwnAudioVST3 MIT licence =====
 
