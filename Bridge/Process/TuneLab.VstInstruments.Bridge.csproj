@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>TuneLab.VstInstruments.Bridge</AssemblyName>
+    <RootNamespace>TuneLab.VstInstruments.Bridge</RootNamespace>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The bridge is published per RID by publish-bridges.ps1 and staged under
+         bridge/<rid>/ next to the extension assembly. -->
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <!-- No HostReference and no TuneLab references: the helper must not depend
+         on the host's own assembly load context. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TieredCompilation>false</TieredCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The shared protocol/ring sources are compiled into both projects. -->
+    <Compile Include="..\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- OwnVST3 native host. Only one RID is published per helper; the native
+       library is copied beside the bridge executable with its .tlvsti name so
+       it cannot collide with another extension's ownvst3. win-x86 has no
+       native library: the helper simply does not advertise VST3/AU there. -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <None Include="Native\win-x64\ownvst3.tlvsti.dll" Link="ownvst3.tlvsti.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-arm64'">
+    <None Include="Native\win-arm64\ownvst3.tlvsti.dll" Link="ownvst3.tlvsti.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <None Include="Native\linux-x64\libownvst3.tlvsti.so" Link="libownvst3.tlvsti.so" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+    <None Include="Native\linux-arm64\libownvst3.tlvsti.so" Link="libownvst3.tlvsti.so" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+    <None Include="Native\osx-x64\libownvst3.tlvsti.dylib" Link="libownvst3.tlvsti.dylib" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+    <None Include="Native\osx-arm64\libownvst3.tlvsti.dylib" Link="libownvst3.tlvsti.dylib" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

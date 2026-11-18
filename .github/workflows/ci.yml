@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            platform: linux
+          - os: windows-latest
+            rid: win-x64
+            platform: windows
+          - os: macos-13
+            rid: osx-x64
+            platform: macos
+          - os: macos-14
+            rid: osx-arm64
+            platform: macos
+
+    steps:
+      - name: Checkout extension
+        uses: actions/checkout@v4
+
+      - name: Checkout TuneLab SDK
+        uses: actions/checkout@v4
+        with:
+          repository: LiuYunPlayer/TuneLab
+          ref: 6cff736
+          path: TuneLab2
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Linux UI and real LV2 dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libx11-dev
+          # Optional: gives the harness a real instrument with X11 UI, worker,
+          # state and time:Position ports. The test is skipped if unavailable.
+          sudo apt-get install -y lsp-plugins-lv2 || echo "lsp-plugins-lv2 unavailable; real LV2 probe will be skipped"
+          for dir in /usr/lib/lv2/lsp-plugins.lv2 /usr/lib/x86_64-linux-gnu/lv2/lsp-plugins.lv2; do
+            if [ -d "$dir" ]; then
+              echo "TUNELAB_TEST_LV2=$dir" >> "$GITHUB_ENV"
+              echo "TUNELAB_TEST_LV2_NAME=LSP Sampler Mono" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+
+      - name: Resolve bridge RID
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            if [ "$(uname -m)" = "arm64" ]; then
+              echo "BRIDGE_RID=osx-arm64" >> "$GITHUB_ENV"
+            else
+              echo "BRIDGE_RID=osx-x64" >> "$GITHUB_ENV"
+            fi
+          else
+            echo "BRIDGE_RID=${{ matrix.rid }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build TuneLab SDK
+        shell: bash
+        run: |
+          dotnet build TuneLab2/TuneLab.SDK/TuneLab.SDK.csproj -c Release
+
+      - name: Build extension
+        shell: bash
+        run: |
+          dotnet build TuneLab.VstInstruments.csproj -c Release \
+            -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2"
+
+      - name: Publish bridge
+        shell: bash
+        run: |
+          dotnet publish Bridge/Process/TuneLab.VstInstruments.Bridge.csproj \
+            -c Release -r "$BRIDGE_RID" --self-contained true \
+            -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2" \
+            -o "artifacts/bridge/$BRIDGE_RID" --nologo -v:q
+
+      - name: Publish 32-bit Windows bridge
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          # MSBuild can reuse the previous RID's apphost from bin/obj; clear it
+          # before publishing win-x86 (same rule as publish-bridges.ps1).
+          rm -rf Bridge/Process/bin Bridge/Process/obj
+          dotnet publish Bridge/Process/TuneLab.VstInstruments.Bridge.csproj \
+            -c Release -r win-x86 --self-contained true \
+            -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2" \
+            -o "artifacts/bridge/win-x86" --nologo -v:q
+
+      - name: Build test harness
+        shell: bash
+        run: |
+          dotnet build TestHarness/TuneLab.VstInstruments.Tests.csproj -c Release \
+            -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2"
+
+      - name: Build LV2 fixture (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          chmod +x TestHarness/LV2Fixture/build-linux.sh
+          TestHarness/LV2Fixture/build-linux.sh
+
+      - name: Build LV2 fixture (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          chmod +x TestHarness/LV2Fixture/build-macos.sh
+          TestHarness/LV2Fixture/build-macos.sh
+
+      - name: Enable MSVC
+        if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build LV2 fixture (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "TestHarness/LV2Fixture/TuneLab Test.lv2" | Out-Null
+          cl /nologo /LD /O2 /utf-8 TestHarness/LV2Fixture/test_lv2.c `
+            /Fe:"TestHarness/LV2Fixture/TuneLab Test.lv2/test_lv2.dll" /link user32.lib
+
+      # Windows CI uses the checked-in synthetic fixture when present; the
+      # harness skips LV2 only if the fixture directory is absent. Real CLAP,
+      # VST2 and VST3 tests are opt-in through TUNELAB_TEST_* paths.
+      - name: Run tests (Linux, Xvfb)
+        if: matrix.platform == 'linux'
+        shell: bash
+        env:
+          TUNELAB_VSTI_CI: "1"
+          TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
+        run: |
+          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge/$BRIDGE_RID"
+          Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-xvfb.log 2>&1 &
+          XVFB_PID=$!
+          trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
+          export DISPLAY=:99
+          sleep 1
+          dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
+
+      - name: Run tests (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          TUNELAB_VSTI_CI: "1"
+          TUNELAB_VSTI_SKIP_UI: "1"
+          TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test macOS.lv2
+        run: |
+          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge/$BRIDGE_RID"
+          dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
+
+      - name: Run tests (Windows)
+        if: matrix.platform == 'windows'
+        shell: bash
+        env:
+          TUNELAB_VSTI_CI: "1"
+          TUNELAB_VSTI_SKIP_UI: "1"
+          TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test.lv2
+        run: |
+          export TUNELAB_VSTI_BRIDGE_DIR="${{ github.workspace }}/artifacts/bridge/$BRIDGE_RID"
+          dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vstinstruments-${{ matrix.rid }}
+          path: |
+            artifacts/bridge
+            TestHarness/bin/Release/net8.0
+          if-no-files-found: warn

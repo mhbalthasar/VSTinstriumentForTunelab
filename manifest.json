@@ -1,0 +1,13 @@
+{
+  "id": "com.tunelab.vstinstruments",
+  "name": "VST Instrument Host",
+  "version": "0.1.0",
+  "author": "mhbalthasar",
+  "description": "Hosts external instrument plugins as TuneLab instrument engines. CLAP, VST2.4, VST3, AU and LV2 run in an isolated helper process; output is rendered offline into TuneLab audio segments. Instruments only; effect plugins are filtered out.",
+  "introduction": "Introduction.md",
+  "sdk-version": "1.2",
+  "type": "instrument",
+  "engine": "TuneLabVstInstruments",
+  "class": "TuneLab.VstInstruments.VstInstrumentEngine",
+  "assembly": "TuneLab.VstInstruments.dll"
+}

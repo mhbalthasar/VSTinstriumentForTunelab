@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>TuneLab.VstInstruments.Tests</AssemblyName>
+    <RootNamespace>TuneLab.VstInstruments.Tests</RootNamespace>
+    <TuneLabSdkRoot Condition="'$(TuneLabSdkRoot)' == '' and '$(TUNELAB_SDK_ROOT)' != ''">$(TUNELAB_SDK_ROOT)</TuneLabSdkRoot>
+    <TuneLabSdkRoot Condition="'$(TuneLabSdkRoot)' == ''">$(MSBuildThisFileDirectory)..\..\..\TuneLab2</TuneLabSdkRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TuneLab.VstInstruments.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="TuneLab.Foundation">
+      <HintPath>$(TuneLabSdkRoot)\TuneLab.Foundation\bin\$(Configuration)\net8.0\TuneLab.Foundation.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="TuneLab.SDK">
+      <HintPath>$(TuneLabSdkRoot)\TuneLab.SDK\bin\$(Configuration)\net8.0\TuneLab.SDK.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

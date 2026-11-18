@@ -1,0 +1,155 @@
+TuneLab VST Instrument Host
+Third-party notices
+====================
+
+This project is licensed under the GNU General Public License, version 3.
+See LICENSE.
+
+The VST3/AU host uses the OwnAudioVST3 managed wrapper and its native
+`ownvst3.tlvsti` library (MIT). The native library contains the Steinberg VST3
+SDK and pugixml under MIT-compatible terms. The LV2 host is dependency-free
+managed code; it uses only the public LV2 C ABI and no lilv binary.
+
+In particular:
+
+- CLAP is a specification and C ABI published by the CLAP authors
+  (https://cleveraudio.org). Only the ABI layout is re-declared here; no CLAP
+  SDK source is copied or redistributed.
+- VST2.4 is a specification published by Steinberg. Only the ABI layout
+  (AEffect, dispatcher opcodes, audioMaster opcodes) is re-declared here from
+  the public specification. No VST2 SDK source is included.
+- VST3 uses the OwnAudioVST3 native host (MIT), which embeds Steinberg VST3 SDK
+  and pugixml code under MIT licences. The full notices are appended below.
+- AU (macOS) uses the same OwnVST3 native host and Apple's system frameworks;
+  no Apple framework is redistributed.
+- LV2 uses the public LV2 C ABI only. No lilv or suil binary is redistributed.
+- The TuneLab SDK and TuneLab Foundation assemblies are host-provided.
+  They are referenced with Private=false and are not redistributed with this
+  extension. See the TuneLab project for their license.
+
+The out-of-process bridge design was informed by the TuneLab experimental
+"epmixer" insert host. All process-global names and native component suffixes
+in this project differ from that project on purpose:
+
+  TuneLab.VstBridge            -> TuneLab.VstInstrumentBridge
+  tunelab-vstbridge            -> tunelab-vstinstrument-bridge
+  ownvst3.tlhost (upstream)    -> ownvst3.tlvsti
+  TUNELAB_BRIDGE_DIR           -> TUNELAB_VSTI_BRIDGE_DIR
+
+If a future phase adds a native shim (VST3/LV2/AU), its license and notices
+must be added here before distribution.
+
+===== OwnAudioVST3 MIT licence =====
+
+MIT License
+
+OwnAudioVst - the OwnVST3Host .NET library and the native ownvst3 plugin host
+
+Copyright (c) 2025-2026 Modern Mube
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+The native ownvst3 library contains third-party code (Steinberg VST 3 SDK,
+pugixml) under its own MIT licence; see THIRD_PARTY_NOTICES.md.
+
+
+
+===== OwnAudioVST3 / Steinberg / pugixml notices =====
+
+# Third-party notices
+
+The OwnAudioVst package (the `OwnVST3Host` assembly and the native `ownvst3` library in
+`runtimes/`) is MIT licensed. The native library contains code from the projects below, all
+under MIT-compatible terms. Nothing in the package is under the AGPL or the JUCE licence:
+since 2.0 the native host no longer uses JUCE.
+
+| Component | Version | Licence | Used for |
+|---|---|---|---|
+| Steinberg VST 3 SDK (`pluginterfaces`, `base`, `public.sdk` hosting and moduleinfo sources) | 3.8.1 | MIT | loading and running VST3 plugins, `moduleinfo.json` |
+| pugixml | 1.15 | MIT | plugin cache XML, VST3 state container XML |
+| OwnVST3 host (ModernMube/OwnVST3, 6a838e3) | – | Unlicense (public domain) | starting point of the VST3 backend |
+| Apple AudioToolbox, AVFoundation, CoreAudioKit, AppKit / UIKit | system | Apple system frameworks, linked, not redistributed | AudioUnit hosting on macOS and iOS |
+
+The VST3 SDK sample plugins (`adelay`, `again-sample-accurate`, `mda-vst3`, …) are built in CI
+for the tests only. They are not part of the package.
+
+---
+
+## Steinberg VST 3 SDK
+
+VST is a registered trademark of Steinberg Media Technologies GmbH.
+
+```
+MIT License
+
+Copyright (c) 2026, Steinberg Media Technologies GmbH
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## pugixml
+
+```
+MIT License
+
+Copyright (c) 2006-2025 Arseny Kapoulkine
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## OwnVST3 host (public domain)
+
+The VST3 backend started from the earlier OwnVST3 host, released by its author under the
+Unlicense (public domain dedication), with an MIT licence as an alternative choice. No notice
+is required; it is listed here for provenance.

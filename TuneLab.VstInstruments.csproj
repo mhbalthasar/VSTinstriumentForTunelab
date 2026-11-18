@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>TuneLab.VstInstruments</AssemblyName>
+    <RootNamespace>TuneLab.VstInstruments</RootNamespace>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!-- The shared bridge sources use unsafe pointer code for the lock-free audio ring. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- TuneLab SDK/Foundation are host-provided. Point this at a checkout of TuneLab2
+         (the folder that contains TuneLab.SDK and TuneLab.Foundation), or at the
+         SDK-only drop Y:\TuneLab2. Override with -p:TuneLabSdkRoot=... or TUNELAB_SDK_ROOT. -->
+    <TuneLabSdkRoot Condition="'$(TuneLabSdkRoot)' == '' and '$(TUNELAB_SDK_ROOT)' != ''">$(TUNELAB_SDK_ROOT)</TuneLabSdkRoot>
+    <TuneLabSdkRoot Condition="'$(TuneLabSdkRoot)' == ''">$(MSBuildThisFileDirectory)..\..\TuneLab2</TuneLabSdkRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="TuneLab.Foundation">
+      <HintPath>$(TuneLabSdkRoot)\TuneLab.Foundation\bin\$(Configuration)\net8.0\TuneLab.Foundation.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TuneLab.SDK">
+      <HintPath>$(TuneLabSdkRoot)\TuneLab.SDK\bin\$(Configuration)\net8.0\TuneLab.SDK.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The bridge process and the test harness are separate projects. The bridge
+         compiles the same Bridge/Shared/*.cs files from its own csproj. -->
+    <Compile Remove="Bridge\Process\**" />
+    <None Remove="Bridge\Process\**" />
+    <Content Remove="Bridge\Process\**" />
+    <Compile Remove="TestHarness\**" />
+    <None Remove="TestHarness\**" />
+    <Content Remove="TestHarness\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Introduction.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>TuneLab.VstInstruments.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

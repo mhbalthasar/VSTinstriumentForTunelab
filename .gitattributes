@@ -1,0 +1,9 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Native plugin-host libraries and packaged binaries must never be normalized.
+*.dll binary
+*.so binary
+*.dylib binary
+*.tlx binary
+*.state binary
