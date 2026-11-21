@@ -140,7 +140,7 @@ is a later addition.
 `OpenEditor` is Windows-only in this build. The VST2 host creates the editor on
 a dedicated STA thread; the CLAP host creates `gui` on the bridge main thread
 and the bridge loop pumps its messages. A plugin that rejects
-`gui->set_parent` (Surge XT CLAP is one) returns that reason instead of opening
+`gui->set_parent` in the native child window (Surge XT CLAP now opens)
 a window.
 
 ### 4.4 State change events
@@ -193,7 +193,7 @@ only safe place to execute plugin code during scanning.
 | render block | `max(30 s, 8 × blockSeconds)` | kill helper, mark the piece failed |
 | state get/set | 30 s | fail the operation |
 | parameter get/set | 10 s | fail the operation |
-| open/close editor | 10 s | VST2/VST3/AU host their native editor; CLAP depends on the plugin accepting `set_parent` |
+| open/close editor | 10 s | VST2/VST3/AU host their native editor; CLAP uses a native child window and `set_parent` |
 | unload | 10 s | kill helper |
 | shutdown | 3 s | kill helper |
 

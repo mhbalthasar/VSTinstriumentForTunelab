@@ -63,7 +63,7 @@ bridge event channel: connected
 loaded: Surge XT | latency=0 tail=96000 params=775 out=2 editor=True
 rendered: peak=0.5709 rms=0.0858 frames=96000
 parameter automation: M1: - 0 -> 0.75
-editor: ok=False reason=gui->set_parent failed          (Surge XT CLAP)
+editor: ok=True reason=                              (Surge XT CLAP)
 bridge state events: host-driven changes suppressed
 VST3 effect correctly filtered
 VST3 loaded: Surge XT | Surge Synth Team | params=2855 out=2 editor=True
@@ -103,10 +103,8 @@ VST2 editor: ok=True reason=
 x86 bridge scanned 32-bit VST2: TDR Nova (Mastering)
 ```
 
-The CLAP editor line is a real limitation, not a harness failure: Surge XT’s
-CLAP GUI rejects `gui->set_parent` after the host window is created. VST2
-editor hosting is verified; CLAP plugins that accept the host window should
-open through the same main-thread GUI pump.
+The CLAP editor line is a real success: Surge XT’s CLAP GUI opens in the
+host’s native child window. VST2 editor hosting is also verified.
 
 The segment offset 21 600 = 24 000 (0.5 s) − 2 400 (50 ms pre-roll), and
 146 400 samples = 3.05 s: 0.45 s pre-roll + 1 s note + 2 s Surge tail − 0.4 s

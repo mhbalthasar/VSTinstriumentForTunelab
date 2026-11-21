@@ -76,7 +76,7 @@ What is actually built and measured in this repository:
 | VST2 scan + filter | **Working** | win-x64 filter rejects Dragonfly Reverb (effect); win-x86 helper loads and describes 32-bit TDR Nova. |
 | VST2 render | **Implemented, untested with a synth** | `effProcessEvents` + `processReplacing` + chunks/parameters; no local VST2 synth exists. |
 | VST2 editor | **Working (Windows)** | Dragonfly Hall Reverb editor opened and closed in the harness. |
-| CLAP editor | **Partial** | Main-thread GUI pump implemented; Surge XT CLAP rejects `gui->set_parent`, so it reports that reason. |
+| CLAP editor | **Working** | Main-thread GUI pump and native child window; Surge XT CLAP opens its editor. |
 | SDK 1.2 UI | **Working** | Settings `Scan now`/`Scan range...`; part `Open Editor`/`Reload Plugin`/`Add Automation`/`Clear Automation`. |
 | Scan path dialog | **Working** | `PromptInputs` form with per-format path lists; paths persisted in `scan-paths.json`. |
 | Parameter automation lanes | **Working** | “Add Automation” opens a per-parameter selection form; selection stored per instrument; harness found 5 lanes. |
@@ -474,7 +474,7 @@ measured; `[ ]` not done.
       `Clear Automation`; `Add Automation` declares `param:<id>` tracks and the
       renderer sends parameter events (Surge `M1` 0 → 0.75).
 - [x] VST2 editor opens and closes on Windows (Dragonfly Hall Reverb).
-- [ ] CLAP editor for Surge XT: the plugin rejects `gui->set_parent`; other
+- [x] CLAP editor for Surge XT: the plugin opens in the native child window; other
       CLAP plugins are untested. VST2 editor hosting is verified.
 - [~] Note-off, sustain, pitch-bend and CC1 are implemented; state changes were
       not measured against a reference.

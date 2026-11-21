@@ -118,7 +118,7 @@ internal static unsafe class ClapNative
         Check(sizeof(ClapPluginNotePorts) == 16, "clap_plugin_note_ports_t");
         Check(sizeof(ClapHostThreadCheck) == 16, "clap_host_thread_check_t");
         Check(sizeof(ClapWindow) == 16, "clap_window_t");
-        Check(sizeof(ClapPluginGui) == 96, "clap_plugin_gui_t");
+        Check(sizeof(ClapPluginGui) == 120, "clap_plugin_gui_t");
         Check(sizeof(ClapHostGui) == 40, "clap_host_gui_t");
     }
 
@@ -397,6 +397,9 @@ internal static unsafe class ClapNative
         public delegate* unmanaged[Cdecl]<ClapPlugin*, void> Destroy;
         public delegate* unmanaged[Cdecl]<ClapPlugin*, double, byte> SetScale;
         public delegate* unmanaged[Cdecl]<ClapPlugin*, uint*, uint*, byte> GetSize;
+        public delegate* unmanaged[Cdecl]<ClapPlugin*, byte> CanResize;
+        public delegate* unmanaged[Cdecl]<ClapPlugin*, IntPtr, byte> GetResizeHints;
+        public delegate* unmanaged[Cdecl]<ClapPlugin*, uint*, uint*, byte> AdjustSize;
         public delegate* unmanaged[Cdecl]<ClapPlugin*, uint, uint, byte> SetSize;
         public delegate* unmanaged[Cdecl]<ClapPlugin*, ClapWindow*, byte> SetParent;
         public delegate* unmanaged[Cdecl]<ClapPlugin*, ClapWindow*, byte> SetTransient;

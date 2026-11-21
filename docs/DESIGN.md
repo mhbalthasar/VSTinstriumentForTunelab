@@ -277,7 +277,7 @@ if not found, the part shows “plugin not found”.
 | `pre_roll_ms` | Slider | Pre-roll, 0…500 ms |
 | `sample_rate` | ComboBox | 44100 / 48000 / 96000 |
 | `polyphony` | Slider | 8…256; advisory in v1 (plugins own their voice allocation) |
-| `open_editor` | Button | Open the plugin editor (VST2 works; CLAP depends on the plugin accepting `set_parent`) |
+| `open_editor` | Button | Open the plugin editor (VST2/VST3/CLAP native editors) |
 | `reload_plugin` | Button | Invalidate all pieces and reload the helper slot on the next render |
 | `add_automation` | Button | Load parameters and open a selection form; selected continuous parameters become `param:<id>` automation lanes |
 | `clear_automation` | Button | Remove those parameter lanes for this instrument |

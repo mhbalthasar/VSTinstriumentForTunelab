@@ -77,9 +77,9 @@ to the **Stereo mode** setting (mono sum, −3 dB sum, left or right).
 - CLAP is hosted in 64-bit helpers only. 32-bit CLAP plugins are rejected
   rather than risking two ABI layouts; 32-bit VST2 still works in the win-x86
   helper.
-- The VST2 editor is hosted on Windows. The CLAP editor is attempted through
-  the bridge's main-thread GUI pump; plugins that reject `gui->set_parent`
-  (Surge XT CLAP is one) report that reason instead of opening a window.
+- The VST2 editor is hosted on Windows. The CLAP editor runs on the bridge's
+  main-thread GUI pump in a native child window; Surge XT CLAP opens its
+  editor successfully.
 - Plugin state is stored in the part’s multiline **State** field keyed
   `vsti_state_<instrumentId>` and is applied when the slot loads. The bridge
   watches the state hash while the host is idle and sends a `StateChanged` event

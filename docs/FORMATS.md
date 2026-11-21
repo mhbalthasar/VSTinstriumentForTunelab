@@ -10,10 +10,9 @@ renders a chord, reports latency/tail and exposes parameters over the protocol.
 The helper implements note/MIDI events, note ports, output-only buffers,
 reset/panic, state, parameter events, and native Windows GUI hosting on the
 bridge main thread. The editor host creates a dedicated `WS_CHILD` container
-for the plugin peer, not an Avalonia window. Surge XT’s CLAP GUI still rejects
-`gui->set_parent` for that container, so its editor reports that reason;
-plugins that accept the host child window should open. 32-bit CLAP is rejected;
-CLAP only runs in a 64-bit helper.
+for the plugin peer, not an Avalonia window. Surge XT’s CLAP editor opens in
+that container after the `clap_plugin_gui_t` ABI layout was corrected. 32-bit
+CLAP is rejected; CLAP only runs in a 64-bit helper.
 
 **Source base:** `TunelabExpermental/ExperimentalPatch/VstBridgeProcess/VstBridge.Common/Clap*.cs`.
 

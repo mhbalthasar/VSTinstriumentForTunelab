@@ -22,7 +22,8 @@ First working milestone (0.1.0, SDK 1.2):
 
 - **CLAP instruments** — scan, load, note/CC/pitch-bend events, parameter
   automation, reset/panic, latency/tail, state and parameter protocol, offline
-  block rendering. Verified end-to-end with Surge XT CLAP on win-x64.
+  block rendering. Verified end-to-end with Surge XT CLAP on win-x64, including
+  its native editor in a dedicated child window.
 - **VST2.4 instruments** — managed AEffect host, `effProcessEvents`,
   synth-only filtering, chunks/parameters, tail/latency, and a working Windows
   editor host. Verified by scanning a 32-bit VST2 in the win-x86 helper,
@@ -72,8 +73,7 @@ First working milestone (0.1.0, SDK 1.2):
 - **Helpers** — published self-contained for win-x64, win-x86, win-arm64,
   linux-x64, linux-arm64, osx-x64 and osx-arm64. win-x64, win-x86 and
   linux-x64 were executed; the other RIDs are build-only.
-- **Not yet** — CLAP editor embedding for plugins such as Surge XT that reject
-  `gui->set_parent`; MPE; per-note pitch; macOS Cocoa UI smoke testing
+- **Not yet** — MPE; per-note pitch; macOS Cocoa UI smoke testing
   (Windows and Linux X11 UIs are tested); AU macOS smoke test; VST3/AU 32-bit
   hosting (LV2 x86 is supported).
 - **Host-shape note** — automatic State write-back uses reflection into the
