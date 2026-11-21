@@ -8,18 +8,19 @@ the local Linux debugger.
 
 ## Verified run
 
-The first full run on commit `fa986d3` passed on all hosted jobs:
+The latest full run on commit `fa7fbe8` passed on all hosted jobs:
 
 - `win-x64`: success, including the synthetic x86 LV2 helper test
-- `linux-x64`: success, including the real LSP Sampler Mono X11 UI test
+- `linux-x64`: success, including real LSP Sampler Mono X11, synthetic Gtk3,
+  Qt5 and Gtk2 UI tests
 - `osx-x64`: success; `osx-arm64` bridge cross-published
 - `package-tlx`: success
 
-Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44317272310>
+Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44877112054>
 
-The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,626,775 bytes
-(243.8 MiB); SHA-256
-`785bcc208d3824d6321eba41503bf4f6e34be604019cc809d975055d9d33b592`.
+The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,735,839 bytes
+(243.9 MiB); SHA-256
+`bc90b4504270ad6640d1560f909f7b9ab0950df3081ab8d38b08c7f9f2e92144`.
 The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
 ## Matrix
