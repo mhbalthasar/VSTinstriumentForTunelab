@@ -7,8 +7,9 @@ See LICENSE.
 
 The VST3/AU host uses the OwnAudioVST3 managed wrapper and its native
 `ownvst3.tlvsti` library (MIT). The native library contains the Steinberg VST3
-SDK and pugixml under MIT-compatible terms. The LV2 host is dependency-free
-managed code; it uses only the public LV2 C ABI and no lilv binary.
+SDK and pugixml under MIT-compatible terms. The LV2 instrument host is
+dependency-free managed code; it uses only the public LV2 C ABI and no lilv
+binary. LV2 Gtk2/Gtk3/Qt5 UI hosting uses a vendored Suil 0.10.26 (ISC).
 
 In particular:
 
@@ -22,7 +23,11 @@ In particular:
   and pugixml code under MIT licences. The full notices are appended below.
 - AU (macOS) uses the same OwnVST3 native host and Apple's system frameworks;
   no Apple framework is redistributed.
-- LV2 uses the public LV2 C ABI only. No lilv or suil binary is redistributed.
+- LV2 uses the public LV2 C ABI only. No lilv binary is redistributed.
+- Suil 0.10.26 (ISC) is vendored for native Gtk2/Gtk3/Qt5 LV2 UI hosting.
+  The source tree is under `Bridge/Process/Native/suil`; the Linux x64
+  runtime and wrapper modules are under its `linux-x64` directory. Suil's
+  ISC license text is shipped beside those binaries.
 - The TuneLab SDK and TuneLab Foundation assemblies are host-provided.
   They are referenced with Private=false and are not redistributed with this
   extension. See the TuneLab project for their license.
@@ -153,3 +158,19 @@ OTHER DEALINGS IN THE SOFTWARE.
 The VST3 backend started from the earlier OwnVST3 host, released by its author under the
 Unlicense (public domain dedication), with an MIT licence as an alternative choice. No notice
 is required; it is listed here for provenance.
+
+## Suil 0.10.26 (ISC)
+
+Copyright 2007-2025 David Robillard <d@drobilla.net>
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.

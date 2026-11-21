@@ -8,10 +8,12 @@ epmixer, and what is still missing.
 **Status:** implemented and tested on win-x64. Surge XT CLAP scans, loads,
 renders a chord, reports latency/tail and exposes parameters over the protocol.
 The helper implements note/MIDI events, note ports, output-only buffers,
-reset/panic, state, parameter events, and Windows GUI hosting on the bridge
-main thread. Surge XT’s CLAP GUI rejects `gui->set_parent`, so its editor
-reports that reason; plugins that accept the host window should open. 32-bit
-CLAP is rejected; CLAP only runs in a 64-bit helper.
+reset/panic, state, parameter events, and native Windows GUI hosting on the
+bridge main thread. The editor host creates a dedicated `WS_CHILD` container
+for the plugin peer, not an Avalonia window. Surge XT’s CLAP GUI still rejects
+`gui->set_parent` for that container, so its editor reports that reason;
+plugins that accept the host child window should open. 32-bit CLAP is rejected;
+CLAP only runs in a 64-bit helper.
 
 **Source base:** `TunelabExpermental/ExperimentalPatch/VstBridgeProcess/VstBridge.Common/Clap*.cs`.
 
@@ -126,13 +128,16 @@ configured `.component` paths.
 
 **Status:** implemented as a managed host for atom input/output, scalar control
 ports, `state:StateInterface`, `LV2_Worker`, options/buf-size and time/transport,
-plus LV2 UI hosts for `ui:WindowsUI`, `ui:X11UI` and `ui:CocoaUI` and the
-`ui:idleInterface` feature. It was verified with x64 and x86 LV2 test synths
+plus LV2 UI hosts for `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI`, `ui:GtkUI`,
+`ui:Gtk3UI` and `ui:Qt5UI` and the `ui:idleInterface` feature. Gtk2/Gtk3/Qt5
+are hosted by a vendored Suil 0.10.26 runtime and native toolkit windows; no
+Avalonia window is involved. It was verified with x64 and x86 LV2 test synths
 built in the harness (scan, load, MIDI note, audio render, control parameter,
-state round-trip, required worker/options features, and Windows UI open/close)
-and with the real LSP Sampler Mono on Linux (14 parameters, 1656-byte state,
-worker/state/time features, X11 UI open/close). Both LV2 helpers advertise
-`lv2`; Cocoa remains build-only until run on macOS.
+state round-trip, required worker/options features, and Windows UI open/close),
+with synthetic Gtk2/Gtk3/Qt5 UIs on Linux x64, and with the real LSP Sampler
+Mono on Linux (14 parameters, 1656-byte state, worker/state/time features,
+X11 UI open/close). Both LV2 helpers advertise `lv2`; Cocoa remains build-only
+until run on macOS.
 
 **Source base:** `Lv2Ttl.cs` (small Turtle reader), `Lv2Native.cs` (descriptor,
 atom sequence, URID map/unmap features), `Lv2InstrumentHost.cs`.
@@ -154,12 +159,14 @@ atom sequence, URID map/unmap features), `Lv2InstrumentHost.cs`.
 - Options/buf-size advertising supplies min/max/nominal/sequence lengths.
 - Time/transport is written as a `time:Position` atom on ports that declare
   `atom:supports time:Position`.
-- UI hosts: Windows uses `ui:WindowsUI` on an STA thread; Linux uses
-  `ui:X11UI` with an X11 parent window and event pump; macOS uses
-  `ui:CocoaUI` with an NSView/NSWindow and a dedicated AppKit thread. All
-  three advertise `ui:idleInterface` and call the UI's idle callback from the
-  UI thread. Windows and Linux X11 are tested; Cocoa is build-only until run
-  on macOS.
+- UI hosts: Windows uses `ui:WindowsUI` on an STA thread; Linux first tries
+  the matching native Suil host (`GtkUI`, `Gtk3UI` or `Qt5UI`) and falls back
+  to `ui:X11UI` with an X11 parent window; macOS uses `ui:CocoaUI` with an
+  NSView/NSWindow and a dedicated AppKit thread. All hosts advertise
+  `ui:idleInterface` and call the UI's idle callback from the UI thread.
+  Windows, Linux X11 and synthetic Gtk2/Gtk3/Qt5 are tested; Cocoa is
+  build-only until run on macOS. GTK2 and GTK3 cannot coexist in one process,
+  so a helper sticks to the first GTK major it opens.
 - A plugin requiring a feature the host does not advertise can still refuse to
   instantiate; the load error is reported honestly.
 

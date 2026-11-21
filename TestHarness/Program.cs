@@ -22,6 +22,12 @@ internal static class Program
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "TestHarness", "LV2Fixture", "TuneLab Test.lv2"));
     static readonly string Lv2Fixture32 = EnvPath("TUNELAB_VSTI_LV2_FIXTURE_32",
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "TestHarness", "LV2Fixture", "TuneLab Test 32.lv2"));
+    static readonly string Lv2Gtk2Fixture = EnvPath("TUNELAB_VSTI_LV2_GTK2_FIXTURE",
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "TestHarness", "LV2Fixture", "TuneLab Gtk2.lv2"));
+    static readonly string Lv2Gtk3Fixture = EnvPath("TUNELAB_VSTI_LV2_GTK3_FIXTURE",
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "TestHarness", "LV2Fixture", "TuneLab Gtk3.lv2"));
+    static readonly string Lv2Qt5Fixture = EnvPath("TUNELAB_VSTI_LV2_QT5_FIXTURE",
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "TestHarness", "LV2Fixture", "TuneLab Qt5.lv2"));
     static readonly string Lv2Real = EnvPath("TUNELAB_TEST_LV2", "");
     static readonly string Lv2RealName = EnvPath("TUNELAB_TEST_LV2_NAME", "");
 
@@ -53,6 +59,7 @@ internal static class Program
             RestartProbe(client);
             Vst3Probe(client);
             Lv2Probe(client, Lv2Fixture);
+            Lv2SuilProbes(client);
             Lv2RealProbe(client);
             Lv2Probe32();
             Lv2CatalogProbe();
@@ -381,6 +388,27 @@ internal static class Program
         }
 
         Check(client.UnloadBlocking(slot), $"{label} unload failed");
+    }
+
+    static void Lv2SuilProbes(VstInstrumentBridgeClient client)
+    {
+        if (!OperatingSystem.IsLinux())
+            return;
+
+        string gtkMajor = Environment.GetEnvironmentVariable("TUNELAB_VSTI_LV2_GTK_MAJOR") ?? "3";
+
+        if (gtkMajor == "2")
+        {
+            if (File.Exists(Path.Combine(Lv2Gtk2Fixture, "test_gtk2_ui.so")))
+                Lv2Probe(client, Lv2Gtk2Fixture, label: "LV2 Gtk2", nameFilter: "TuneLab Gtk2 Fixture");
+        }
+        else if (File.Exists(Path.Combine(Lv2Gtk3Fixture, "test_gtk3_ui.so")))
+        {
+            Lv2Probe(client, Lv2Gtk3Fixture, label: "LV2 Gtk3", nameFilter: "TuneLab Gtk3 Fixture");
+        }
+
+        if (File.Exists(Path.Combine(Lv2Qt5Fixture, "test_qt5_ui.so")))
+            Lv2Probe(client, Lv2Qt5Fixture, label: "LV2 Qt5", nameFilter: "TuneLab Qt5 Fixture");
     }
 
     static void Lv2RealProbe(VstInstrumentBridgeClient client)

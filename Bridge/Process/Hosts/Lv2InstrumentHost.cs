@@ -118,8 +118,10 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
                 FeatureSet = featureSet,
                 Worker = worker,
                 Plugin = plugin,
-                UiBinary = FindUiBinary(plugin.BundlePath, plugin.BinaryPath,
-                    NativeLibrary.TryGetExport(library, "lv2ui_descriptor", out _)),
+                UiBinary = !string.IsNullOrEmpty(plugin.UiBinaryPath) && File.Exists(plugin.UiBinaryPath)
+                    ? plugin.UiBinaryPath
+                    : FindUiBinary(plugin.BundlePath, plugin.BinaryPath,
+                        NativeLibrary.TryGetExport(library, "lv2ui_descriptor", out _)),
                 Frames = block,
                 SampleRate = sampleRate,
                 Ports = [],
@@ -796,7 +798,11 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
         }
         else if (OperatingSystem.IsLinux())
         {
-            if (Lv2X11EditorWindow.TryOpen(slot, title, out var x11Editor))
+            // Gtk3/Qt5 UIs need their own native toolkit host. X11UI is the
+            // direct fallback and remains the common case for LSP etc.
+            if (Lv2SuilEditorWindow.TryOpen(slot, title, out var suilEditor))
+                editor = suilEditor;
+            else if (Lv2X11EditorWindow.TryOpen(slot, title, out var x11Editor))
                 editor = x11Editor;
         }
         else if (OperatingSystem.IsMacOS())

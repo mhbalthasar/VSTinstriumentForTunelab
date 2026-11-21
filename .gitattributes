@@ -1,9 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+*.sh text eol=lf
 
 # Native plugin-host libraries and packaged binaries must never be normalized.
 *.dll binary
 *.so binary
+*.so.* binary
 *.dylib binary
 *.tlx binary
 *.state binary

@@ -38,6 +38,16 @@
   </ItemGroup>
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
     <None Include="Native\linux-x64\libownvst3.tlvsti.so" Link="libownvst3.tlvsti.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\COPYING.suil" Link="COPYING.suil" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\ISC.txt" Link="ISC.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\libsuil-0.so.0" Link="libsuil-0.so.0" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\libtlvsti_suil_gtk2.so" Link="libtlvsti_suil_gtk2.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\libtlvsti_suil_gtk3.so" Link="libtlvsti_suil_gtk3.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\libtlvsti_suil_qt5.so" Link="libtlvsti_suil_qt5.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\suil-0\libsuil_x11.so" Link="suil-0\libsuil_x11.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\suil-0\libsuil_x11_in_gtk2.so" Link="suil-0\libsuil_x11_in_gtk2.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\suil-0\libsuil_x11_in_gtk3.so" Link="suil-0\libsuil_x11_in_gtk3.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Native\suil\linux-x64\suil-0\libsuil_x11_in_qt5.so" Link="suil-0\libsuil_x11_in_qt5.so" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
     <None Include="Native\linux-arm64\libownvst3.tlvsti.so" Link="libownvst3.tlvsti.so" CopyToOutputDirectory="PreserveNewest" />

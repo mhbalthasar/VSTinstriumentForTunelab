@@ -1,0 +1,38 @@
+# Copyright 2021-2025 David Robillard <d@drobilla.net>
+# SPDX-License-Identifier: 0BSD OR ISC
+
+option('cocoa', type: 'feature',
+       description : 'Build Cocoa wrappers')
+
+option('docs', type: 'feature',
+       description: 'Build documentation')
+
+option('gtk2', type: 'feature',
+       description : 'Build Gtk2 wrappers')
+
+option('gtk3', type: 'feature',
+       description : 'Build Gtk3 wrappers')
+
+option('html', type: 'feature',
+       description: 'Build paginated HTML documentation')
+
+option('lint', type: 'boolean', value: false,
+       description: 'Run code quality checks')
+
+option('qt5', type: 'feature',
+       description : 'Build Qt5 wrappers')
+
+option('qt6', type: 'feature',
+       description : 'Build Qt6 wrappers')
+
+option('singlehtml', type: 'feature',
+       description: 'Build single-page HTML documentation')
+
+option('tests', type: 'feature',
+       description: 'Build tests')
+
+option('title', type: 'string', value: 'Suil',
+       description: 'Project title')
+
+option('x11', type: 'feature',
+       description : 'Build X11 wrappers')

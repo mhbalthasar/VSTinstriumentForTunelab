@@ -52,6 +52,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libx11-dev
+          sudo apt-get install -y libgtk-3-dev qtbase5-dev
+          sudo apt-get install -y libgtk2.0-dev || echo "Gtk2 development files unavailable; Gtk2 probe will be skipped"
           # Optional: gives the harness a real instrument with X11 UI, worker,
           # state and time:Position ports. The test is skipped if unavailable.
           sudo apt-get install -y lsp-plugins-lv2 || echo "lsp-plugins-lv2 unavailable; real LV2 probe will be skipped"
@@ -132,6 +134,8 @@ jobs:
         run: |
           chmod +x TestHarness/LV2Fixture/build-linux.sh
           TestHarness/LV2Fixture/build-linux.sh
+          chmod +x TestHarness/LV2Fixture/build-suil-fixtures.sh
+          bash TestHarness/LV2Fixture/build-suil-fixtures.sh
 
       - name: Build LV2 fixture (macOS)
         if: matrix.platform == 'macos'
@@ -161,9 +165,32 @@ jobs:
         env:
           TUNELAB_VSTI_CI: "1"
           TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
+          TUNELAB_VSTI_LV2_GTK2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk2.lv2
+          TUNELAB_VSTI_LV2_GTK3_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk3.lv2
+          TUNELAB_VSTI_LV2_QT5_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Qt5.lv2
+          QT_QPA_PLATFORM: xcb
         run: |
           export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
           Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-xvfb.log 2>&1 &
+          XVFB_PID=$!
+          trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
+          export DISPLAY=:99
+          sleep 1
+          dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
+
+      - name: Run tests (Linux, Gtk2)
+        if: matrix.platform == 'linux'
+        shell: bash
+        env:
+          TUNELAB_VSTI_CI: "1"
+          TUNELAB_VSTI_LV2_GTK_MAJOR: "2"
+          TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
+          TUNELAB_VSTI_LV2_GTK2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk2.lv2
+          TUNELAB_VSTI_LV2_GTK3_FIXTURE: /tmp/tlvsti-no-gtk3
+          TUNELAB_VSTI_LV2_QT5_FIXTURE: /tmp/tlvsti-no-qt5
+        run: |
+          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
+          Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-gtk2-xvfb.log 2>&1 &
           XVFB_PID=$!
           trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
           export DISPLAY=:99

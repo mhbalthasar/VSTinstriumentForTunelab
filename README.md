@@ -51,13 +51,18 @@ First working milestone (0.1.0, SDK 1.2):
   catalog/stamps. The package is published but not executed on this machine.
 - **LV2 instruments** — dependency-free managed host for atom MIDI input,
   audio output, control ports, `state:StateInterface`, `LV2_Worker`,
-  options/buf-size, time/transport atoms and LV2 UI hosts for
-  `ui:WindowsUI`, `ui:X11UI` and `ui:CocoaUI`, including the
-  `ui:idleInterface` feature. Both x64 and x86 LV2 bundles are scanned and
-  routed to the matching helper. Verified with x64/x86 synthetic LV2 synths
-  and with the real **LSP Sampler Mono** on Linux: scan, load, atom MIDI,
-  render, 14 parameters, 1656-byte state, worker/state/time features and the
-  X11 UI. Windows UI is tested; Cocoa is build-only until run on macOS.
+  options/buf-size, time/transport atoms and native LV2 UI hosts for
+  `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI`, `ui:GtkUI`, `ui:Gtk3UI` and
+  `ui:Qt5UI`, including the `ui:idleInterface` feature. Gtk2/Gtk3/Qt5 use
+  the vendored Suil 0.10.26 runtime and a native toolkit window (never an
+  Avalonia window). Both x64 and x86 LV2 bundles are scanned and routed to
+  the matching helper. Verified with x64/x86 synthetic LV2 synths and with
+  the real **LSP Sampler Mono** on Linux: scan, load, atom MIDI, render,
+  14 parameters, 1656-byte state, worker/state/time features and the X11 UI.
+  Synthetic Gtk2, Gtk3 and Qt5 UIs also pass on Linux x64. Because GTK2 and
+  GTK3 export the same symbols, a helper supports the first GTK major it
+  opens; restart the helper to switch. Windows UI is tested; Cocoa is
+  build-only until run on macOS.
 - **Instrument classification** — CLI/format metadata is authoritative
   (`instrument` feature, `effFlagsIsSynth`, VST3/AU category, LV2
   `InstrumentPlugin`/designation). If a format provides no instrument marker,
@@ -69,8 +74,7 @@ First working milestone (0.1.0, SDK 1.2):
 - **Not yet** — CLAP editor embedding for plugins such as Surge XT that reject
   `gui->set_parent`; MPE; per-note pitch; macOS Cocoa UI smoke testing
   (Windows and Linux X11 UIs are tested); AU macOS smoke test; VST3/AU 32-bit
-  hosting (LV2 x86 is supported); GtkUI/QtUI LV2 UIs (X11/Cocoa/Windows UIs
-  are supported).
+  hosting (LV2 x86 is supported).
 - **Host-shape note** — automatic State write-back uses reflection into the
   host’s `InstrumentSynthesisContext.Part → MidiPart.Properties →
   DataPropertyObject.SetValue` path because SDK 1.2 only exposes a read-only

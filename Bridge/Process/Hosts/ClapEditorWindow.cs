@@ -57,6 +57,10 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
 
     Thread? mThread;
     IntPtr mHwnd;
+
+    // Native child container. The plugin GUI is attached to this HWND, not to
+    // the top-level frame, so JUCE/Qt-style editors get a real child peer.
+    IntPtr mChildHwnd;
     volatile bool mClosed;
     volatile bool mExited;
     volatile bool mCreated;
@@ -329,6 +333,22 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
 
             mHwnd = hwnd;
 
+            // Give the plugin a dedicated native child container. Attaching a
+            // JUCE/Qt editor directly to a top-level frame is the pattern that
+            // Surge XT's CLAP GUI rejects.
+            mChildHwnd = CreateWindowEx(0, "STATIC", string.Empty,
+                WsChild | WsVisible | WsClipChildren | WsClipSiblings,
+                0, 0, width, height, hwnd, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
+            if (mChildHwnd == IntPtr.Zero)
+            {
+                reason = "child container creation failed";
+                mCreated = false;
+                DestroyWindow(hwnd);
+                mHwnd = IntPtr.Zero;
+                return false;
+            }
+
             ShowWindow(hwnd, SwShow);
             UpdateWindow(hwnd);
             SetWindowPos(hwnd, HwndTopmost, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpShowWindow);
@@ -337,7 +357,7 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
             var window = new ClapNative.ClapWindow
             {
                 Api = (byte*)ClapNative.Win32Api,
-                Specific = hwnd,
+                Specific = mChildHwnd,
             };
 
             if (mGui->SetParent == null || mGui->SetParent(mPlugin, &window) == 0)
@@ -346,6 +366,7 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
                 DestroyGui();
                 DestroyWindow(hwnd);
                 mHwnd = IntPtr.Zero;
+                mChildHwnd = IntPtr.Zero;
                 return false;
             }
 
@@ -353,7 +374,7 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
 
             bool shown = mGui->Show == null || mGui->Show(mPlugin) != 0;
             mShown = shown;
-            mChildCount = CountChildren(hwnd);
+            mChildCount = CountChildren(mChildHwnd);
 
             if (!shown && mChildCount == 0)
             {
@@ -361,6 +382,7 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
                 DestroyGui();
                 DestroyWindow(hwnd);
                 mHwnd = IntPtr.Zero;
+                mChildHwnd = IntPtr.Zero;
                 return false;
             }
 
@@ -533,6 +555,7 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
             }
 
             mHwnd = IntPtr.Zero;
+            mChildHwnd = IntPtr.Zero;
             return;
         }
 
@@ -785,16 +808,24 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
         switch (message)
         {
             case WmSize:
-                // 窗口尺寸变了 → 告诉插件（它据此重排 / 重绘自己的子窗口）。
-                // mGuiReady 之前不调：建窗时的 WM_SIZE 早于 set_parent。
-                if (mGuiReady && mGui->SetSize != null)
+                // Keep the native child container exactly the size of the
+                // frame, then tell the plugin its new size.
+                long size = lParam.ToInt64();
+                int childWidth = (int)(size & 0xFFFF);
+                int childHeight = (int)((size >> 16) & 0xFFFF);
+
+                if (mChildHwnd != IntPtr.Zero && childWidth > 0 && childHeight > 0)
                 {
-                    long packed = lParam.ToInt64();
-                    mGui->SetSize(mPlugin, (uint)(packed & 0xFFFF), (uint)((packed >> 16) & 0xFFFF));
+                    SetWindowPos(mChildHwnd, IntPtr.Zero, 0, 0, childWidth, childHeight,
+                        SwpNoMove | SwpNoZOrder | SwpNoActivate);
                 }
 
-                return IntPtr.Zero;
+                // mGuiReady must be false before set_parent: the initial
+                // WM_SIZE arrives while the host window is being created.
+                if (mGuiReady && mGui->SetSize != null && childWidth > 0 && childHeight > 0)
+                    mGui->SetSize(mPlugin, (uint)childWidth, (uint)childHeight);
 
+                return IntPtr.Zero;
             case WmBringToFront:
                 SetForegroundWindow(hwnd);
                 return IntPtr.Zero;
@@ -937,6 +968,10 @@ internal sealed unsafe class ClapEditorWindow : IDisposable
     delegate bool WndEnumProc(IntPtr hwnd, IntPtr lParam);
 
     const uint WsOverlappedWindow = 0x00CF0000;
+    const uint WsChild = 0x40000000;
+    const uint WsVisible = 0x10000000;
+    const uint WsClipChildren = 0x02000000;
+    const uint WsClipSiblings = 0x04000000;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     struct WNDCLASSEX

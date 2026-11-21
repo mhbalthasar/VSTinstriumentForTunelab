@@ -1,0 +1,43 @@
+# Copyright 2020-2025 David Robillard <d@drobilla.net>
+# SPDX-License-Identifier: 0BSD OR ISC
+
+Checks: >
+  *,
+  -*-magic-numbers,
+  -*-named-parameter,
+  -*-no-malloc,
+  -*-uppercase-literal-suffix,
+  -*-vararg,
+  -altera-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-suspicious-string-compare,
+  -cert-err33-c,
+  -clang-analyzer-core.CallAndMessage,
+  -clang-analyzer-security.ArrayBound,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -concurrency-mt-unsafe,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-cstyle-cast,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -fuchsia-default-arguments,
+  -fuchsia-default-arguments-calls,
+  -google-runtime-int,
+  -hicpp-signed-bitwise,
+  -llvm-header-guard,
+  -llvm-prefer-static-over-anonymous-namespace,
+  -llvmlibc-*,
+  -misc-include-cleaner,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -performance-no-int-to-ptr,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-implicit-bool-conversion,
+  -readability-non-const-parameter,
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle: file

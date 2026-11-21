@@ -62,6 +62,14 @@ nunit-*.xml
 # Generated synthetic LV2 fixtures and MSVC import/object files
 TestHarness/LV2Fixture/TuneLab Test Linux.lv2/
 TestHarness/LV2Fixture/TuneLab Test macOS.lv2/
+TestHarness/LV2Fixture/TuneLab Gtk2.lv2/
+TestHarness/LV2Fixture/TuneLab Gtk3.lv2/
+TestHarness/LV2Fixture/TuneLab Qt5.lv2/
+TestHarness/LV2Fixture/test_lv2.so
+
+# Suil build trees (the prebuilt runtime lives in Native/suil/linux-*/)
+Bridge/Process/Native/suil/build-*/
+Bridge/Process/Native/suil/install-*/
 TestHarness/LV2Fixture/**/*.exp
 TestHarness/LV2Fixture/**/*.lib
 TestHarness/LV2Fixture/**/*.obj
