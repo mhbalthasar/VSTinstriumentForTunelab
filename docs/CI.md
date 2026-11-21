@@ -3,12 +3,12 @@
 The workflow is in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 The project is connected to
 `github.com/mhbalthasar/VSTinstriumentForTunelab`; pushes to `main` run the
-matrix and the packaging job. The Linux/x64 path has also been reproduced on
-the local Linux debugger.
+matrix and the packaging job. The Linux x64 and arm64 paths are also exercised
+on the hosted runners.
 
 ## Verified run
 
-The latest full run on commit `cf0fc8e` passed on all hosted jobs:
+The latest full run on commit `9ede8da` passed on all hosted jobs:
 
 - `win-x64`: success, including the synthetic x86 LV2 helper test
 - `linux-x64`: success, including real LSP Sampler Mono X11 and synthetic Gtk3 UI tests
@@ -16,11 +16,11 @@ The latest full run on commit `cf0fc8e` passed on all hosted jobs:
 - `linux-arm64`: success, including the native Gtk3 UI host
 - `package-tlx`: success
 
-Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44919500425>
+Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44920628797>
 
-The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,033 bytes
+The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,207 bytes
 (243.9 MiB); SHA-256
-`87554313884a346d0efafc8f6dcf6d795497391fb4c265bc47b81346c2a23075`.
+`17277682440e6ea7d965567c0d4fbce3659572502ba2eb3c4edeb3f20193c1ac`.
 The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
 ## Matrix

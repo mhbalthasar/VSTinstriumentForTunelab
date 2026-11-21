@@ -72,7 +72,7 @@ First working milestone (0.1.0, SDK 1.2):
   least one audio output**; effects with an input bus are filtered out.
 - **Helpers** — published self-contained for win-x64, win-x86, win-arm64,
   linux-x64, linux-arm64, osx-x64 and osx-arm64. win-x64, win-x86 and
-  linux-x64 were executed; the other RIDs are build-only.
+  linux-x64 and linux-arm64 were executed; the other RIDs are build-only.
 - **Not yet** — MPE; per-note pitch; macOS Cocoa UI smoke testing
   (Windows and Linux X11 UIs are tested); AU macOS smoke test; VST3/AU 32-bit
   hosting (LV2 x86 is supported).
