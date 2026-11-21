@@ -57,8 +57,8 @@ After the matrix succeeds, the `package-tlx` job runs on `windows-latest`:
 4. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
 
 The Windows job uses MSVC (`ilammy/msvc-dev-cmd`) to compile the LV2
-fixture. Linux needs `xvfb`, `libx11-dev`, `gcc`, `libgtk2.0-dev`,
-`libgtk-3-dev` and `qtbase5-dev`; `lsp-plugins-lv2` is installed when
+fixture. Linux needs `xvfb`, `libx11-dev`, `lv2-dev`, `gcc`,
+`libgtk2.0-dev`, `libgtk-3-dev` and `qtbase5-dev`; `lsp-plugins-lv2` is installed when
 available for the real LV2 UI test. macOS uses `clang` with `-dynamiclib`.
 
 ## Real plugin tests are opt-in
