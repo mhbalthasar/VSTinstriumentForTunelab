@@ -55,16 +55,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libx11-dev lv2-dev build-essential meson ninja-build pkg-config libgtk-3-dev
-          # Optional: gives the harness a real instrument with X11 UI, worker,
-          # state and time:Position ports. The test is skipped if unavailable.
-          sudo apt-get install -y lsp-plugins-lv2 || echo "lsp-plugins-lv2 unavailable; real LV2 probe will be skipped"
-          for dir in /usr/lib/lv2/lsp-plugins.lv2 /usr/lib/x86_64-linux-gnu/lv2/lsp-plugins.lv2 /usr/lib/aarch64-linux-gnu/lv2/lsp-plugins.lv2; do
-            if [ -d "$dir" ]; then
-              echo "TUNELAB_TEST_LV2=$dir" >> "$GITHUB_ENV"
-              echo "TUNELAB_TEST_LV2_NAME=LSP Sampler Mono" >> "$GITHUB_ENV"
-              break
-            fi
-          done
+          # Optional: gives the x64 harness a real instrument with X11 UI,
+          # worker, state and time:Position ports. The arm64 job exercises the
+          # synthetic Gtk3 host; LSP's arm64 UI cleanup is plugin-specific.
+          if [ "${{ matrix.rid }}" = "linux-x64" ]; then
+            sudo apt-get install -y lsp-plugins-lv2 || echo "lsp-plugins-lv2 unavailable; real LV2 probe will be skipped"
+            for dir in /usr/lib/lv2/lsp-plugins.lv2 /usr/lib/x86_64-linux-gnu/lv2/lsp-plugins.lv2; do
+              if [ -d "$dir" ]; then
+                echo "TUNELAB_TEST_LV2=$dir" >> "$GITHUB_ENV"
+                echo "TUNELAB_TEST_LV2_NAME=LSP Sampler Mono" >> "$GITHUB_ENV"
+                break
+              fi
+            done
+          fi
 
       - name: Resolve bridge RID
         shell: bash
