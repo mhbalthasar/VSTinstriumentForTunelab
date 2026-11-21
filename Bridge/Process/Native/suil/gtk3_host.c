@@ -320,8 +320,14 @@ static void process_command(TlvstiCommand* command)
     }
     ui->open_args = NULL;
     free_open_args(args);
-    if (result == 0)
+    if (result == 0) {
       g_ptr_array_add(g_live_uis, ui);
+    } else {
+      /* create_ui may have allocated a window or Suil instance before it
+       * failed. Tear it down on the toolkit thread; the caller must not
+       * close the same UI a second time. */
+      destroy_ui(ui);
+    }
 
     g_mutex_lock(&ui->lock);
     ui->open_result = result;
@@ -494,14 +500,17 @@ int tlvsti_gtk3_open(const char* plugin_uri,
   int result = wait_for_open(ui);
   if (result != 0) {
     set_error(error, error_capacity, "%s", ui->error[0] ? ui->error : "Gtk3 UI open failed");
-    /* The toolkit thread may still own the window on timeout.  Closing is
-     * best-effort; the process stays alive even if it never started. */
-    if (ui->open_done)
-      tlvsti_gtk3_close(ui);
+    /* process_command already destroyed the half-created UI on failure.
+     * Do not call tlvsti_gtk3_close() here: it owns and frees the UI. */
     free_open_args(ui->open_args);
-    g_mutex_clear(&ui->lock);
-    g_cond_clear(&ui->cond);
-    free(ui);
+    if (ui->open_done) {
+      g_mutex_clear(&ui->lock);
+      g_cond_clear(&ui->cond);
+      free(ui);
+    }
+    /* On a timeout the toolkit thread may still use the object; leaking it
+     * is safer than a use-after-free and the helper process can still fall
+     * back to the parameter panel. */
     return 1;
   }
 
@@ -528,11 +537,16 @@ void tlvsti_gtk3_close(TlvstiSuilUi* ui)
   g_mutex_lock(&ui->lock);
   while (!ui->close_done && g_get_monotonic_time() < deadline)
     g_cond_wait_until(&ui->cond, &ui->lock, deadline);
+  gboolean closed = ui->close_done;
   g_mutex_unlock(&ui->lock);
 
-  g_mutex_clear(&ui->lock);
-  g_cond_clear(&ui->cond);
-  free(ui);
+  if (closed) {
+    g_mutex_clear(&ui->lock);
+    g_cond_clear(&ui->cond);
+    free(ui);
+  }
+  /* If the toolkit thread is wedged, leak rather than free an object it may
+   * still be using. */
 }
 
 void tlvsti_gtk3_port_event(TlvstiSuilUi* ui, uint32_t port_index, float value)

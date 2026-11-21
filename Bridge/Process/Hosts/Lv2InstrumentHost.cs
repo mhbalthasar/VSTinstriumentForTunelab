@@ -798,7 +798,7 @@ internal sealed unsafe class Lv2InstrumentHost : IBridgeInstrumentHost
         }
         else if (OperatingSystem.IsLinux())
         {
-            // Gtk3/Qt5 UIs need their own native toolkit host. X11UI is the
+            // Gtk3 UIs need a native toolkit host. X11UI is the
             // direct fallback and remains the common case for LSP etc.
             if (Lv2SuilEditorWindow.TryOpen(slot, title, out var suilEditor))
                 editor = suilEditor;

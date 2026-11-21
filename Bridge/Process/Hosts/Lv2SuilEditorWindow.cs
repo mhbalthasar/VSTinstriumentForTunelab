@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace TuneLab.VstInstruments.Bridge.Hosts;
 
-// Native Gtk3/Qt5 LV2 UI host. The actual window and toolkit event loop live
+// Native Gtk3 LV2 UI host. The actual window and toolkit event loop live
 // in a small vendored Suil shim, never in Avalonia. The bridge only forwards
 // port events and close/show requests.
 internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
@@ -48,10 +48,6 @@ internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
     static readonly UnsubscribeProc sUnsubscribe = UnsubscribeCallback;
     static readonly TouchProc sTouch = TouchCallback;
 
-    // Gtk2 and Gtk3 cannot safely coexist in one process: both export the
-    // same gtk_* symbols.  The bridge sticks to the first GTK major used.
-    static int sGtkMajor;
-
     readonly Lv2InstrumentHost.Slot mSlot;
     IntPtr mLibrary;
     IntPtr mHandle;
@@ -73,6 +69,7 @@ internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
         window = null;
 
         if (!OperatingSystem.IsLinux()
+            || Environment.GetEnvironmentVariable("TUNELAB_VSTI_DISABLE_SUIL") == "1"
             || string.IsNullOrEmpty(slot.Plugin.UiType)
             || string.IsNullOrEmpty(slot.Plugin.UiUri)
             || string.IsNullOrEmpty(slot.UiBinary))
@@ -80,25 +77,11 @@ internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
             return false;
         }
 
-        (string libraryName, string prefix)? host = slot.Plugin.UiType switch
-        {
-            Lv2Native.UiGtk2Uri => ("libtlvsti_suil_gtk2.so", "tlvsti_gtk2_"),
-            Lv2Native.UiGtk3Uri => ("libtlvsti_suil_gtk3.so", "tlvsti_gtk3_"),
-            Lv2Native.UiQt5Uri => ("libtlvsti_suil_qt5.so", "tlvsti_qt5_"),
-            _ => null,
-        };
-
-        if (host == null)
+        if (slot.Plugin.UiType != Lv2Native.UiGtk3Uri)
             return false;
 
-        if (slot.Plugin.UiType == Lv2Native.UiGtk2Uri && sGtkMajor == 3)
-            return false;
-
-        if (slot.Plugin.UiType == Lv2Native.UiGtk3Uri && sGtkMajor == 2)
-            return false;
-
-        string libraryName = host.Value.libraryName;
-        string prefix = host.Value.prefix;
+        const string libraryName = "libtlvsti_suil_gtk3.so";
+        const string prefix = "tlvsti_gtk3_";
 
         string libraryPath = Path.Combine(AppContext.BaseDirectory, libraryName);
 
@@ -189,11 +172,6 @@ internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
                     candidate.mCallbacks = callbacks;
                     keepCallbacks = true;
 
-                    if (slot.Plugin.UiType == Lv2Native.UiGtk2Uri)
-                        sGtkMajor = 2;
-                    else if (slot.Plugin.UiType == Lv2Native.UiGtk3Uri)
-                        sGtkMajor = 3;
-
                     window = candidate;
                     return true;
                 }
@@ -255,7 +233,7 @@ internal sealed unsafe class Lv2SuilEditorWindow : ILv2EditorWindow
             mCallbacks = IntPtr.Zero;
         }
 
-        // Do not unload the native shim here: its Gtk3/Qt5 thread keeps
+        // Do not unload the native shim here: its Gtk3 thread keeps
         // running for the lifetime of the helper process.
         mLibrary = IntPtr.Zero;
     }

@@ -52,17 +52,18 @@ First working milestone (0.1.0, SDK 1.2):
 - **LV2 instruments** — dependency-free managed host for atom MIDI input,
   audio output, control ports, `state:StateInterface`, `LV2_Worker`,
   options/buf-size, time/transport atoms and native LV2 UI hosts for
-  `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI`, `ui:GtkUI`, `ui:Gtk3UI` and
-  `ui:Qt5UI`, including the `ui:idleInterface` feature. Gtk2/Gtk3/Qt5 use
+  `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI` and `ui:Gtk3UI`, including the
+  `ui:idleInterface` feature. Gtk3 uses
   the vendored Suil 0.10.26 runtime and a native toolkit window (never an
   Avalonia window). Both x64 and x86 LV2 bundles are scanned and routed to
   the matching helper. Verified with x64/x86 synthetic LV2 synths and with
   the real **LSP Sampler Mono** on Linux: scan, load, atom MIDI, render,
   14 parameters, 1656-byte state, worker/state/time features and the X11 UI.
-  Synthetic Gtk2, Gtk3 and Qt5 UIs also pass on Linux x64. Because GTK2 and
-  GTK3 export the same symbols, a helper supports the first GTK major it
-  opens; restart the helper to switch. Windows UI is tested; Cocoa is
-  build-only until run on macOS.
+  Synthetic Gtk3 UIs also pass on Linux x64 and, natively, on Linux arm64.
+  If the Gtk3 shim is missing or `TUNELAB_VSTI_DISABLE_SUIL=1` is set, the
+  host falls back to X11 when the plugin offers it, then to the parameter
+  panel; it never risks a non-X11 widget in an X11 host. Windows UI is tested;
+  Cocoa is build-only until run on macOS.
 - **Instrument classification** — CLI/format metadata is authoritative
   (`instrument` feature, `effFlagsIsSynth`, VST3/AU category, LV2
   `InstrumentPlugin`/designation). If a format provides no instrument marker,

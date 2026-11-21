@@ -9,7 +9,7 @@ The VST3/AU host uses the OwnAudioVST3 managed wrapper and its native
 `ownvst3.tlvsti` library (MIT). The native library contains the Steinberg VST3
 SDK and pugixml under MIT-compatible terms. The LV2 instrument host is
 dependency-free managed code; it uses only the public LV2 C ABI and no lilv
-binary. LV2 Gtk2/Gtk3/Qt5 UI hosting uses a vendored Suil 0.10.26 (ISC).
+binary. LV2 Gtk3 UI hosting uses a vendored Suil 0.10.26 (ISC).
 
 In particular:
 
@@ -24,7 +24,7 @@ In particular:
 - AU (macOS) uses the same OwnVST3 native host and Apple's system frameworks;
   no Apple framework is redistributed.
 - LV2 uses the public LV2 C ABI only. No lilv binary is redistributed.
-- Suil 0.10.26 (ISC) is vendored for native Gtk2/Gtk3/Qt5 LV2 UI hosting.
+- Suil 0.10.26 (ISC) is vendored for native Gtk3 LV2 UI hosting.
   The source tree is under `Bridge/Process/Native/suil`; the Linux x64
   runtime and wrapper modules are under its `linux-x64` directory. Suil's
   ISC license text is shipped beside those binaries.

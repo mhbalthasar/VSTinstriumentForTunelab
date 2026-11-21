@@ -317,7 +317,7 @@ than silently loading and producing silence. No x86 VST3.
 - Run the plugin’s worker (`LV2_Worker_Schedule`) on a separate thread; some
   samplers require it for loading.
 - UI: native Windows/X11/Cocoa hosts plus vendored Suil 0.10.26 for
-  Gtk2/Gtk3/Qt5 on Linux x64.
+  Gtk3 on Linux x64.
 - Cross-platform x64/arm64; x86 only if lilv/native libs are built for x86.
 
 **Verdict:** native shim, but simpler than AU/VST3. Tier 2.

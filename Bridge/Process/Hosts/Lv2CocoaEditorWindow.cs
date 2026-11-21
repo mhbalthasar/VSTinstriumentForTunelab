@@ -55,6 +55,11 @@ internal sealed unsafe class Lv2CocoaEditorWindow : ILv2EditorWindow
 
     public static bool TryOpen(Lv2InstrumentHost.Slot slot, string title, out Lv2CocoaEditorWindow? window)
     {
+        window = null;
+
+        if (!string.IsNullOrEmpty(slot.Plugin.UiType) && slot.Plugin.UiType != Lv2Native.UiCocoaUri)
+            return false;
+
         var candidate = new Lv2CocoaEditorWindow(slot);
 
         if (!candidate.Start(title))

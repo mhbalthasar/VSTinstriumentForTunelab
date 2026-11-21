@@ -11,9 +11,9 @@ the local Linux debugger.
 The latest full run on commit `fa7fbe8` passed on all hosted jobs:
 
 - `win-x64`: success, including the synthetic x86 LV2 helper test
-- `linux-x64`: success, including real LSP Sampler Mono X11, synthetic Gtk3,
-  Qt5 and Gtk2 UI tests
+- `linux-x64`: success, including real LSP Sampler Mono X11 and synthetic Gtk3 UI tests
 - `osx-x64`: success; `osx-arm64` bridge cross-published
+- `linux-arm64`: success, including the native Gtk3 UI host
 - `package-tlx`: success
 
 Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44877112054>
@@ -27,7 +27,8 @@ The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
 | Runner | RID | LV2 UI test |
 | --- | --- | --- |
-| `ubuntu-latest` | `linux-x64` | yes, under Xvfb (X11, Gtk2, Gtk3, Qt5) |
+| `ubuntu-latest` | `linux-x64` | yes, under Xvfb (X11, Gtk3) |
+| `ubuntu-24.04-arm` | `linux-arm64` | yes, native arm64 (X11, Gtk3) |
 | `windows-latest` | `win-x64`, plus `win-x86` helper | build-only (Windows UI is covered by the local harness) |
 | `macos-15-intel` | `osx-x64`, plus `osx-arm64` build-only | build-only (Cocoa UI needs a GUI session) |
 
@@ -45,22 +46,24 @@ Each job:
    to this repository);
 7. builds the test harness;
 8. compiles the synthetic LV2 bundle for that platform; Linux also builds
-   Gtk2/Gtk3/Qt5 bundles for the Suil UI host;
-9. runs the harness; Linux runs a second pass for Gtk2 because GTK2 and GTK3
-   cannot coexist in one helper process.
+   the Gtk3 bundle for the Suil UI host;
+9. runs the harness. The arm64 Linux job also builds and uploads the native
+   Gtk3 Suil host, which the package job reuses.
 
 After the matrix succeeds, the `package-tlx` job runs on `windows-latest`:
 
-1. publishes all seven self-contained bridge RIDs with
+1. downloads the arm64 Suil host built by the linux-arm64 job;
+2. publishes all seven self-contained bridge RIDs with
    `publish-bridges.ps1 -Configuration Release`;
-2. builds `TuneLab.SDK` in Release so the extension can resolve its references;
-3. packs `dist/VSTinstriumentForTunelab.tlx` with `pack.ps1 -SkipBridges`;
-4. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
+3. builds `TuneLab.SDK` in Release so the extension can resolve its references;
+4. packs `dist/VSTinstriumentForTunelab.tlx` with `pack.ps1 -SkipBridges`;
+5. uploads it as the `VSTinstriumentForTunelab-tlx` workflow artifact.
 
 The Windows job uses MSVC (`ilammy/msvc-dev-cmd`) to compile the LV2
-fixture. Linux needs `xvfb`, `libx11-dev`, `lv2-dev`, `gcc`,
-`libgtk2.0-dev`, `libgtk-3-dev` and `qtbase5-dev`; `lsp-plugins-lv2` is installed when
-available for the real LV2 UI test. macOS uses `clang` with `-dynamiclib`.
+fixture. Linux needs `xvfb`, `libx11-dev`, `lv2-dev`, `build-essential`,
+`meson`, `ninja-build`, `pkg-config` and `libgtk-3-dev`; `lsp-plugins-lv2` is
+installed when available for the real LV2 UI test. macOS uses `clang` with
+`-dynamiclib`.
 
 ## Real plugin tests are opt-in
 

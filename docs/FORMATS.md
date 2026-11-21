@@ -128,13 +128,13 @@ configured `.component` paths.
 
 **Status:** implemented as a managed host for atom input/output, scalar control
 ports, `state:StateInterface`, `LV2_Worker`, options/buf-size and time/transport,
-plus LV2 UI hosts for `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI`, `ui:GtkUI`,
-`ui:Gtk3UI` and `ui:Qt5UI` and the `ui:idleInterface` feature. Gtk2/Gtk3/Qt5
-are hosted by a vendored Suil 0.10.26 runtime and native toolkit windows; no
+plus LV2 UI hosts for `ui:WindowsUI`, `ui:X11UI`, `ui:CocoaUI` and `ui:Gtk3UI`
+and the `ui:idleInterface` feature. Gtk3 is hosted by a vendored Suil 0.10.26
+runtime and a native toolkit window; no
 Avalonia window is involved. It was verified with x64 and x86 LV2 test synths
 built in the harness (scan, load, MIDI note, audio render, control parameter,
 state round-trip, required worker/options features, and Windows UI open/close),
-with synthetic Gtk2/Gtk3/Qt5 UIs on Linux x64, and with the real LSP Sampler
+with synthetic Gtk3 UIs on Linux x64 and arm64, and with the real LSP Sampler
 Mono on Linux (14 parameters, 1656-byte state, worker/state/time features,
 X11 UI open/close). Both LV2 helpers advertise `lv2`; Cocoa remains build-only
 until run on macOS.
@@ -160,13 +160,12 @@ atom sequence, URID map/unmap features), `Lv2InstrumentHost.cs`.
 - Time/transport is written as a `time:Position` atom on ports that declare
   `atom:supports time:Position`.
 - UI hosts: Windows uses `ui:WindowsUI` on an STA thread; Linux first tries
-  the matching native Suil host (`GtkUI`, `Gtk3UI` or `Qt5UI`) and falls back
+  the native Suil Gtk3 host and falls back
   to `ui:X11UI` with an X11 parent window; macOS uses `ui:CocoaUI` with an
   NSView/NSWindow and a dedicated AppKit thread. All hosts advertise
   `ui:idleInterface` and call the UI's idle callback from the UI thread.
-  Windows, Linux X11 and synthetic Gtk2/Gtk3/Qt5 are tested; Cocoa is
-  build-only until run on macOS. GTK2 and GTK3 cannot coexist in one process,
-  so a helper sticks to the first GTK major it opens.
+  Windows, Linux X11 and synthetic Gtk3 are tested; Cocoa is build-only until
+  run on macOS.
 - A plugin requiring a feature the host does not advertise can still refuse to
   instantiate; the load error is reported honestly.
 

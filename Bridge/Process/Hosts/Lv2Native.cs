@@ -128,9 +128,7 @@ internal static unsafe class Lv2Native
     public const string UiWindowsUri = "http://lv2plug.in/ns/extensions/ui#WindowsUI";
     public const string UiX11Uri = "http://lv2plug.in/ns/extensions/ui#X11UI";
     public const string UiCocoaUri = "http://lv2plug.in/ns/extensions/ui#CocoaUI";
-    public const string UiGtk2Uri = "http://lv2plug.in/ns/extensions/ui#GtkUI";
     public const string UiGtk3Uri = "http://lv2plug.in/ns/extensions/ui#Gtk3UI";
-    public const string UiQt5Uri = "http://lv2plug.in/ns/extensions/ui#Qt5UI";
     public const string UiParentUri = "http://lv2plug.in/ns/extensions/ui#parent";
     public const string UiIdleInterfaceUri = "http://lv2plug.in/ns/extensions/ui#idleInterface";
 

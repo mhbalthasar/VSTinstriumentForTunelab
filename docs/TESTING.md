@@ -37,8 +37,8 @@ It exercises:
 6. plugin state round-trip (`GetState` → `LoadPlugin.state` → reload);
 7. VST3 scan/load/chord/parameters/state/editor with Surge XT;
 8. LV2 x64/x86 scan/load/chord/control/state/worker/options/Windows UI with
-   synthetic fixtures, synthetic Gtk2/Gtk3/Qt5 UI tests on Linux x64 through
-   the vendored Suil hosts, plus a real LSP Sampler Mono X11 UI test when
+   synthetic fixtures, synthetic Gtk3 UI tests on Linux x64 and arm64 through
+   the vendored Suil host, plus a real LSP Sampler Mono X11 UI test when
    `TUNELAB_TEST_LV2` is set (Cocoa UI remains build-only here);
 9. the catalog loader (CLAP folder, cache, instrument-only filter);
 10. `VstInstrumentSession` end-to-end (fake TuneLab context → mono segment);
@@ -52,9 +52,8 @@ It exercises:
 15. VST2 effect filtering on win-x64 and a 32-bit VST2 scan on win-x86.
 
 Last full run (win-x64, 2026-11-21): **all tests passed**. The Linux x64 run
-also passed, including the real LSP Sampler Mono X11 UI probe and the
-Gtk2, Gtk3 and Qt5 synthetic UI probes. Gtk2 is run in a separate helper
-process from Gtk3 because the two GTK majors cannot share one process.
+also passed, including the real LSP Sampler Mono X11 UI probe and the Gtk3
+synthetic UI probe. The native Linux arm64 job runs the same Gtk3 probe.
 
 ```
 bridge formats: vst2, clap, lv2, vst3
@@ -168,8 +167,8 @@ Local Windows corpus and current status:
   synth render.
 - Linux: `/usr/lib64/lv2/lsp-plugins.lv2` (`LSP Sampler Mono`) - real LV2
   instrument with X11 UI, worker/state interfaces and time/transport support.
-  Synthetic `TuneLab Gtk2.lv2`, `TuneLab Gtk3.lv2` and `TuneLab Qt5.lv2`
-  exercise the native Suil hosts (build with `build-suil-fixtures.sh`).
+  Synthetic `TuneLab Gtk3.lv2` exercises the native Suil host (build with
+  `build-suil-fixtures.sh`).
   The sampler has no sample loaded, so the probe accepts silence and checks
   load, parameters, state and UI open/close.
 

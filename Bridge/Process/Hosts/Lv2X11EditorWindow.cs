@@ -48,6 +48,11 @@ internal sealed unsafe class Lv2X11EditorWindow : ILv2EditorWindow
 
     public static bool TryOpen(Lv2InstrumentHost.Slot slot, string title, out Lv2X11EditorWindow? window)
     {
+        window = null;
+
+        if (!string.IsNullOrEmpty(slot.Plugin.UiType) && slot.Plugin.UiType != Lv2Native.UiX11Uri)
+            return false;
+
         var candidate = new Lv2X11EditorWindow(slot);
 
         if (!candidate.Start(title))

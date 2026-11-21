@@ -27,6 +27,9 @@ jobs:
           - os: windows-latest
             rid: win-x64
             platform: windows
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            platform: linux
           - os: macos-15-intel
             rid: osx-x64
             platform: macos
@@ -51,13 +54,11 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libx11-dev lv2-dev
-          sudo apt-get install -y libgtk-3-dev qtbase5-dev
-          sudo apt-get install -y libgtk2.0-dev || echo "Gtk2 development files unavailable; Gtk2 probe will be skipped"
+          sudo apt-get install -y xvfb libx11-dev lv2-dev build-essential meson ninja-build pkg-config libgtk-3-dev
           # Optional: gives the harness a real instrument with X11 UI, worker,
           # state and time:Position ports. The test is skipped if unavailable.
           sudo apt-get install -y lsp-plugins-lv2 || echo "lsp-plugins-lv2 unavailable; real LV2 probe will be skipped"
-          for dir in /usr/lib/lv2/lsp-plugins.lv2 /usr/lib/x86_64-linux-gnu/lv2/lsp-plugins.lv2; do
+          for dir in /usr/lib/lv2/lsp-plugins.lv2 /usr/lib/x86_64-linux-gnu/lv2/lsp-plugins.lv2 /usr/lib/aarch64-linux-gnu/lv2/lsp-plugins.lv2; do
             if [ -d "$dir" ]; then
               echo "TUNELAB_TEST_LV2=$dir" >> "$GITHUB_ENV"
               echo "TUNELAB_TEST_LV2_NAME=LSP Sampler Mono" >> "$GITHUB_ENV"
@@ -88,6 +89,13 @@ jobs:
         run: |
           dotnet build TuneLab.VstInstruments.csproj -c Release \
             -p:TuneLabSdkRoot="$GITHUB_WORKSPACE/TuneLab2"
+
+      - name: Build Suil native hosts (Linux arm64)
+        if: matrix.rid == 'linux-arm64'
+        shell: bash
+        run: |
+          chmod +x Bridge/Process/Native/suil/build-linux.sh
+          Bridge/Process/Native/suil/build-linux.sh arm64
 
       - name: Publish bridge
         shell: bash
@@ -165,32 +173,10 @@ jobs:
         env:
           TUNELAB_VSTI_CI: "1"
           TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
-          TUNELAB_VSTI_LV2_GTK2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk2.lv2
           TUNELAB_VSTI_LV2_GTK3_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk3.lv2
-          TUNELAB_VSTI_LV2_QT5_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Qt5.lv2
-          QT_QPA_PLATFORM: xcb
         run: |
           export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
           Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-xvfb.log 2>&1 &
-          XVFB_PID=$!
-          trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
-          export DISPLAY=:99
-          sleep 1
-          dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
-
-      - name: Run tests (Linux, Gtk2)
-        if: matrix.platform == 'linux'
-        shell: bash
-        env:
-          TUNELAB_VSTI_CI: "1"
-          TUNELAB_VSTI_LV2_GTK_MAJOR: "2"
-          TUNELAB_VSTI_LV2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Test Linux.lv2
-          TUNELAB_VSTI_LV2_GTK2_FIXTURE: ${{ github.workspace }}/TestHarness/LV2Fixture/TuneLab Gtk2.lv2
-          TUNELAB_VSTI_LV2_GTK3_FIXTURE: /tmp/tlvsti-no-gtk3
-          TUNELAB_VSTI_LV2_QT5_FIXTURE: /tmp/tlvsti-no-qt5
-        run: |
-          export TUNELAB_VSTI_BRIDGE_DIR="$PWD/artifacts/bridge"
-          Xvfb :99 -screen 0 1280x1024x24 >/tmp/tlvsti-gtk2-xvfb.log 2>&1 &
           XVFB_PID=$!
           trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
           export DISPLAY=:99
@@ -218,6 +204,14 @@ jobs:
         run: |
           export TUNELAB_VSTI_BRIDGE_DIR="${{ github.workspace }}/artifacts/bridge"
           dotnet TestHarness/bin/Release/net8.0/TuneLab.VstInstruments.Tests.dll
+
+      - name: Upload Suil arm64 host
+        if: matrix.rid == 'linux-arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: suil-linux-arm64
+          path: Bridge/Process/Native/suil/linux-arm64
+          if-no-files-found: error
 
       - name: Upload test artifacts
         if: always()
@@ -249,6 +243,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: Download Suil arm64 host
+        uses: actions/download-artifact@v4
+        with:
+          name: suil-linux-arm64
+          path: Bridge/Process/Native/suil/linux-arm64
 
       - name: Publish all bridge RIDs
         shell: pwsh
