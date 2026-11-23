@@ -723,7 +723,7 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
 
     async Task EditScanPathsAsync(IButtonClickContext click)
     {
-        var result = await click.DialogService.PromptInputs(L("扫描范围", "Scan range"), BuildScanPathConfig());
+        var result = await click.DialogService.PromptInputs(L("扫描范围", "Scan range"), values => BuildScanPathConfig(values));
 
         if (result == null)
             return;
@@ -735,29 +735,40 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
                 "Scan folders updated. Use “Scan now” to refresh the catalog."));
     }
 
-    ObjectConfig BuildScanPathConfig()
+    ObjectConfig BuildScanPathConfig(PropertyObject values)
     {
+        // PromptInputs re-declares the form after every edit. Build each list
+        // from the form's current sparse values; only fall back to the saved
+        // settings when that format's list has not been touched yet. Without
+        // this, a folder added with + would be replaced by the stale saved
+        // list on the next form reconciliation.
+        var clap = values.Map.ContainsKey("clap_paths") ? ReadPaths(values, "clap_paths") : [.. mSettings.ClapPaths];
+        var vst2 = values.Map.ContainsKey("vst2_paths") ? ReadPaths(values, "vst2_paths") : [.. mSettings.Vst2Paths];
+        var vst3 = values.Map.ContainsKey("vst3_paths") ? ReadPaths(values, "vst3_paths") : [.. mSettings.Vst3Paths];
+        var lv2 = values.Map.ContainsKey("lv2_paths") ? ReadPaths(values, "lv2_paths") : [.. mSettings.Lv2Paths];
+        var au = values.Map.ContainsKey("au_paths") ? ReadPaths(values, "au_paths") : [.. mSettings.AuPaths];
+
         var properties = new OrderedMap<PropertyKey, IControllerConfig>
         {
             {
-                ("clap_paths", L("CLAP 路径", "CLAP folders")),
-                BuildPathList(mSettings.ClapPaths, L("添加 CLAP 目录", "Add a CLAP folder"))
+                ("clap_paths", L("CLAP ??", "CLAP folders")),
+                BuildPathList(clap, L("?? CLAP ??", "Add a CLAP folder"))
             },
             {
-                ("vst2_paths", L("VST2 路径", "VST2 folders")),
-                BuildPathList(mSettings.Vst2Paths, L("添加 VST2 目录", "Add a VST2 folder"))
+                ("vst2_paths", L("VST2 ??", "VST2 folders")),
+                BuildPathList(vst2, L("?? VST2 ??", "Add a VST2 folder"))
             },
             {
-                ("vst3_paths", L("VST3 路径", "VST3 folders")),
-                BuildPathList(mSettings.Vst3Paths, L("添加 VST3 目录", "Add a VST3 folder"))
+                ("vst3_paths", L("VST3 ??", "VST3 folders")),
+                BuildPathList(vst3, L("?? VST3 ??", "Add a VST3 folder"))
             },
             {
-                ("lv2_paths", L("LV2 路径", "LV2 folders")),
-                BuildPathList(mSettings.Lv2Paths, L("添加 LV2 目录", "Add an LV2 folder"))
+                ("lv2_paths", L("LV2 ??", "LV2 folders")),
+                BuildPathList(lv2, L("?? LV2 ??", "Add an LV2 folder"))
             },
             {
-                ("au_paths", L("AU 路径", "AU folders")),
-                BuildPathList(mSettings.AuPaths, L("添加 AU 目录", "Add an AU folder"))
+                ("au_paths", L("AU ??", "AU folders")),
+                BuildPathList(au, L("?? AU ??", "Add an AU folder"))
             },
         };
 

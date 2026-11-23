@@ -1035,12 +1035,18 @@ public sealed class VstInstrumentBridgeClient : IDisposable
 
         string baseDirectory = AppContext.BaseDirectory;
         string processDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? baseDirectory;
+        string extensionDirectory = Path.GetDirectoryName(typeof(VstInstrumentBridgeClient).Assembly.Location)
+            ?? baseDirectory;
 
         // Per-RID subdirectories are the shipping layout: x86 and x64 self-
         // contained runtimes have same-named but different-architecture files
-        // and must never share a folder.
+        // and must never share a folder.  The extension assembly normally lives
+        // in %APPDATA%/TuneLab/Extensions/... while AppContext.BaseDirectory is
+        // the TuneLab executable folder, so check beside the extension first.
         string[] candidates =
         [
+            Path.Combine(extensionDirectory, "bridge", rid, name),
+            Path.Combine(extensionDirectory, name),
             Path.Combine(baseDirectory, "bridge", rid, name),
             Path.Combine(baseDirectory, name),
             Path.Combine(processDirectory, "bridge", rid, name),
