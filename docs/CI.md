@@ -8,7 +8,7 @@ on the hosted runners.
 
 ## Verified run
 
-The latest full run on commit `9ede8da` passed on all hosted jobs:
+The latest full run on commit `7c805a6` passed on all hosted jobs:
 
 - `win-x64`: success, including the synthetic x86 LV2 helper test
 - `linux-x64`: success, including real LSP Sampler Mono X11 and synthetic Gtk3 UI tests
@@ -16,11 +16,11 @@ The latest full run on commit `9ede8da` passed on all hosted jobs:
 - `linux-arm64`: success, including the native Gtk3 UI host
 - `package-tlx`: success
 
-Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/44920628797>
+Run: <https://github.com/mhbalthasar/VSTinstriumentForTunelab/actions/runs/45105967555>
 
-The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,207 bytes
+The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,478 bytes
 (243.9 MiB); SHA-256
-`17277682440e6ea7d965567c0d4fbce3659572502ba2eb3c4edeb3f20193c1ac`.
+`3d6ed75c7b4ab32f9a7c91b7932041bfb16b2dc1716173fc0af1814e17299361`.
 The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
 ## Matrix

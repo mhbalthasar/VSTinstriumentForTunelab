@@ -170,8 +170,10 @@ powershell -ExecutionPolicy Bypass -File .\pack.ps1 -Install
 
 `pack.ps1` builds the extension, publishes/stages the helpers under
 `artifacts\bridge\<rid>\`, copies them into `bridge\<rid>\` inside the package,
-and writes `dist\VSTinstriumentForTunelab.tlx`. With all seven self-contained
-RIDs the package is roughly 248 MB (the VST3/AU native libraries add most of
+and writes `dist\VSTinstriumentForTunelab.tlx`. The helper is resolved beside the
+installed extension assembly (`bridge\<rid>\...`), not beside TuneLab.exe.
+With all seven self-contained
+RIDs the package is roughly 244 MB (the VST3/AU native libraries add most of
 the increase); see `docs/PLATFORMS.md` for size options.
 
 ## Non-goals
