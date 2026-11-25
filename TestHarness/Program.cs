@@ -59,8 +59,10 @@ internal static class Program
             Lv2RealProbe(client);
             Lv2Probe32();
             Lv2CatalogProbe();
+            EmptyCatalogProbe();
             CatalogProbe();
             UiConfigProbe();
+            ScanPathConfigProbe();
             StateStoreProbe();
             StateWriterProbe();
             ParameterFilterProbe();
@@ -88,6 +90,15 @@ internal static class Program
 
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ROOT")) && Directory.Exists(localDotnet))
             Environment.SetEnvironmentVariable("DOTNET_ROOT", localDotnet);
+
+        // Keep test catalogs and state files out of the real TuneLab profile.
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TUNELAB_VSTI_DATA_ROOT")))
+        {
+            string testRoot = Path.Combine(Path.GetTempPath(), "tunelab-vsti-tests",
+                Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Directory.CreateDirectory(testRoot);
+            Environment.SetEnvironmentVariable("TUNELAB_VSTI_DATA_ROOT", testRoot);
+        }
 
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TUNELAB_VSTI_BRIDGE_DIR")))
         {
@@ -646,6 +657,60 @@ internal static class Program
         Check(catalog.Layout.Count > 0, "the catalog has no layout");
 
         Console.WriteLine($"  catalog: {catalog.ById.Count} entry/entries, {catalog.Layout.Count} format group(s)");
+    }
+
+    static void EmptyCatalogProbe()
+    {
+        // The configured lists are authoritative. An empty list must not start
+        // the helper or silently scan the usual system plugin folders.
+        var settings = new VstInstrumentSettings();
+        var catalog = PluginCatalogLoader.LoadOrScan(settings, new NullLogger(), forceScan: true);
+
+        Check(catalog.ById.Count == 0, "empty scan roots fell back to default plugin folders");
+        Check(File.Exists(CatalogPaths.CacheFile), "the empty scan did not write an empty catalog cache");
+
+        Console.WriteLine("  empty scan roots: empty catalog (no default fallback)");
+    }
+
+    static void ScanPathConfigProbe()
+    {
+        var engine = new VstInstrumentEngine();
+        var settingsField = typeof(VstInstrumentEngine).GetField("mSettings",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var settings = (VstInstrumentSettings)settingsField.GetValue(engine)!;
+
+        const string saved = @"C:\TuneLab\Saved CLAP";
+        settings.ClapPaths = [saved];
+
+        var build = typeof(VstInstrumentEngine).GetMethod("BuildScanPathConfig",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+
+        var initial = (ObjectConfig)build.Invoke(engine, [PropertyObject.Empty])!;
+        var initialList = initial.Properties.First(kv => kv.Key.Id == "clap_paths").Value as ListConfig;
+
+        Check(initialList != null, "the scan form has no CLAP path list");
+        Check(initialList!.Elements.Count == 1
+            && initialList.Elements[0] is PathPickerConfig { DefaultValue: saved },
+            "the saved CLAP path is not visible in the scan form");
+
+        // Simulate the form after the user pressed + and picked a folder: the
+        // sparse values now carry the whole list, which must win over settings.
+        const string added = @"C:\TuneLab\Added CLAP";
+        var values = new PropertyObject(new Map<string, PropertyValue>
+        {
+            ["clap_paths"] = PropertyValue.Create(new PropertyArray(
+                [PropertyValue.Create(saved), PropertyValue.Create(added)])),
+        });
+
+        var edited = (ObjectConfig)build.Invoke(engine, [values])!;
+        var editedList = edited.Properties.First(kv => kv.Key.Id == "clap_paths").Value as ListConfig;
+
+        Check(editedList != null && editedList.Elements.Count == 2
+            && editedList.Elements[0] is PathPickerConfig { DefaultValue: saved }
+            && editedList.Elements[1] is PathPickerConfig { DefaultValue: added },
+            "a folder added with + is lost on the next form reconciliation");
+
+        Console.WriteLine("  scan path form: saved and + added folders stay visible");
     }
 
     static void UiConfigProbe()

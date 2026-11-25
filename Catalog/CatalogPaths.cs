@@ -14,6 +14,13 @@ internal static class CatalogPaths
 
     static string ComputeDataRoot()
     {
+        // Tests (and portable setups) can isolate the catalog cache without
+        // touching the real per-user TuneLab data folder.
+        string? overrideRoot = Environment.GetEnvironmentVariable("TUNELAB_VSTI_DATA_ROOT");
+
+        if (!string.IsNullOrWhiteSpace(overrideRoot))
+            return Path.GetFullPath(overrideRoot);
+
         if (OperatingSystem.IsWindows())
         {
             string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

@@ -33,6 +33,39 @@ internal static class PluginCatalogLoader
     {
         var cached = LoadCache(logger);
 
+        // The configured lists are authoritative. Unlike the experimental
+        // effect host, an empty list means "scan nothing"; never silently add
+        // system default plugin folders.
+        var rootsByFormat = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            [PluginFormats.Clap] = Collect(settings.ClapPaths),
+            [PluginFormats.Vst2] = Collect(settings.Vst2Paths),
+            [PluginFormats.Vst3] = Collect(settings.Vst3Paths),
+            [PluginFormats.Lv2] = Collect(settings.Lv2Paths),
+            [PluginFormats.Au] = Collect(settings.AuPaths),
+        };
+
+        var scopedCache = new List<CatalogEntry>();
+        foreach (var entry in cached)
+        {
+            if (rootsByFormat.TryGetValue(entry.Format, out var roots)
+                && IsUnderAnyRoot(entry.Locator, roots))
+            {
+                scopedCache.Add(entry);
+            }
+        }
+        cached = scopedCache;
+
+        // With no configured folder there is nothing to scan. Do not start a
+        // helper (which can take seconds) just to discover an empty list, and
+        // clear any catalog entries left by an older default-root scan.
+        if (rootsByFormat.Values.All(roots => roots.Count == 0))
+        {
+            SaveCache([], logger);
+            logger.Info("No VST instrument scan folders are configured; the catalog is empty.");
+            return PluginCatalog.Empty;
+        }
+
         var client = VstInstrumentBridgeClient.ForRid(BridgeIdentity.Rid);
         bool started = client.EnsureStartedBlocking();
 
@@ -67,15 +100,6 @@ internal static class PluginCatalogLoader
             // changed; supported formats with no changes cost no plugin load.
             entries[entry.Id] = entry;
         }
-
-        var rootsByFormat = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            [PluginFormats.Clap] = Collect(settings.ClapPaths, DefaultClapRoots()),
-            [PluginFormats.Vst2] = Collect(settings.Vst2Paths, DefaultVst2Roots()),
-            [PluginFormats.Vst3] = Collect(settings.Vst3Paths, DefaultVst3Roots()),
-            [PluginFormats.Lv2] = Collect(settings.Lv2Paths, DefaultLv2Roots()),
-            [PluginFormats.Au] = Collect(settings.AuPaths, DefaultAuRoots()),
-        };
 
         foreach (var (format, roots) in rootsByFormat)
         {
@@ -531,17 +555,51 @@ internal static class PluginCatalogLoader
         return path;
     }
 
-    static List<string> Collect(List<string> configured, IEnumerable<string> defaults)
+    static bool IsUnderAnyRoot(string locator, List<string> roots)
+    {
+        if (string.IsNullOrWhiteSpace(locator) || roots.Count == 0)
+            return false;
+
+        string fullLocator;
+
+        try
+        {
+            fullLocator = Path.GetFullPath(locator);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        foreach (string root in roots)
+        {
+            if (string.IsNullOrWhiteSpace(root))
+                continue;
+
+            try
+            {
+                string fullRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+                if (string.Equals(fullLocator, fullRoot, sPathComparison))
+                    return true;
+
+                string prefix = fullRoot + Path.DirectorySeparatorChar;
+                if (fullLocator.StartsWith(prefix, sPathComparison))
+                    return true;
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        return false;
+    }
+
+    static List<string> Collect(List<string> configured)
     {
         var result = new List<string>();
 
         foreach (string path in configured)
-        {
-            if (!string.IsNullOrWhiteSpace(path))
-                result.Add(path);
-        }
-
-        foreach (string path in defaults)
         {
             if (!string.IsNullOrWhiteSpace(path))
                 result.Add(path);
@@ -552,98 +610,5 @@ internal static class PluginCatalogLoader
             .ToList();
     }
 
-    // ── Default scan roots ──
 
-    static IEnumerable<string> DefaultClapRoots()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            yield return Path.Combine(CommonProgramFiles, "CLAP");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            yield return "/Library/Audio/Plug-Ins/CLAP";
-            yield return Path.Combine(Home, "Library", "Audio", "Plug-Ins", "CLAP");
-        }
-        else
-        {
-            yield return "/usr/lib/clap";
-            yield return "/usr/local/lib/clap";
-            yield return Path.Combine(Home, ".clap");
-        }
-    }
-
-    static IEnumerable<string> DefaultVst2Roots()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            yield return Path.Combine(CommonProgramFiles, "VST2");
-            yield return Path.Combine(ProgramFiles, "VSTPlugins");
-            yield return Path.Combine(ProgramFiles, "Steinberg", "VSTPlugins");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            yield return "/Library/Audio/Plug-Ins/VST";
-            yield return Path.Combine(Home, "Library", "Audio", "Plug-Ins", "VST");
-        }
-        else
-        {
-            yield return "/usr/lib/vst";
-            yield return "/usr/local/lib/vst";
-            yield return Path.Combine(Home, ".vst");
-        }
-    }
-
-    static IEnumerable<string> DefaultVst3Roots()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            yield return Path.Combine(CommonProgramFiles, "VST3");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            yield return "/Library/Audio/Plug-Ins/VST3";
-            yield return Path.Combine(Home, "Library", "Audio", "Plug-Ins", "VST3");
-        }
-        else
-        {
-            yield return "/usr/lib/vst3";
-            yield return "/usr/local/lib/vst3";
-            yield return Path.Combine(Home, ".vst3");
-        }
-    }
-
-    static IEnumerable<string> DefaultLv2Roots()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            yield return Path.Combine(CommonProgramFiles, "LV2");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            yield return "/Library/Audio/Plug-Ins/LV2";
-            yield return Path.Combine(Home, "Library", "Audio", "Plug-Ins", "LV2");
-        }
-        else
-        {
-            yield return "/usr/lib/lv2";
-            yield return "/usr/local/lib/lv2";
-            yield return Path.Combine(Home, ".lv2");
-        }
-    }
-
-    static IEnumerable<string> DefaultAuRoots()
-    {
-        if (!OperatingSystem.IsMacOS())
-            yield break;
-
-        yield return "/Library/Audio/Plug-Ins/Components";
-        yield return Path.Combine(Home, "Library", "Audio", "Plug-Ins", "Components");
-    }
-
-    static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-    static string CommonProgramFiles => Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
-
-    static string ProgramFiles => Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 }

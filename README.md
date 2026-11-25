@@ -18,7 +18,7 @@ still allows it) x86.
 
 ## Status
 
-First working milestone (0.1.0, SDK 1.2):
+First working milestone (0.1.1, SDK 1.2):
 
 - **CLAP instruments** — scan, load, note/CC/pitch-bend events, parameter
   automation, reset/panic, latency/tail, state and parameter protocol, offline
@@ -32,6 +32,9 @@ First working milestone (0.1.0, SDK 1.2):
 - **Settings UI (SDK 1.2)** — “Scan now” and “Scan range...” buttons. The range
   dialog is a TuneLab-style `PromptInputs` form with per-format path lists;
   paths persist in the extension’s own `scan-paths.json`.
+  The configured lists are authoritative: an empty list scans nothing and
+  never falls back to the
+  usual system plugin folders (unlike the experimental effect host).
 - **Part panel (SDK 1.2)** — “Open Editor”, “Reload Plugin”, “Add Automation”,
   “Clear Automation”, a multiline **State** field keyed
   `vsti_state_<instrumentId>`, “Capture State” and “Clear State”. Add
@@ -76,6 +79,11 @@ First working milestone (0.1.0, SDK 1.2):
 - **Not yet** — MPE; per-note pitch; macOS Cocoa UI smoke testing
   (Windows and Linux X11 UIs are tested); AU macOS smoke test; VST3/AU 32-bit
   hosting (LV2 x86 is supported).
+- **Synthesis threading** - the render worker only reads the immutable
+  `InstrumentSynthesisSnapshot`. `CreateAudioSegment`, state write-back and
+  declaration invalidation are marshalled back to the data thread; status
+  queries never touch the live `IInstrumentSynthesisContext`. This avoids the
+  SDK 1.2 live-view thread guard.
 - **Host-shape note** — automatic State write-back uses reflection into the
   host’s `InstrumentSynthesisContext.Part → MidiPart.Properties →
   DataPropertyObject.SetValue` path because SDK 1.2 only exposes a read-only

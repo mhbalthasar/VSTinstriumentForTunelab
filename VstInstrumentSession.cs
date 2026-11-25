@@ -29,6 +29,7 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
         Action? onDisposed = null)
     {
         mContext = context;
+        mDataContext = SynchronizationContext.Current;
         mEntry = entry;
         mSettings = settings;
         mAutomatedParameters = automatedParameters;
@@ -89,7 +90,7 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
             mStatusChanged.Invoke();
         });
 
-        await mRenderLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        await mRenderLock.WaitAsync(CancellationToken.None);
 
         if (mDisposed)
         {
@@ -102,7 +103,7 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
         {
             var rendered = await Task.Run(
                 () => RenderPiece(piece, timedEvents, automation, parameterAutomations, state, renderSettings, progress, cancellation),
-                CancellationToken.None).ConfigureAwait(false);
+                CancellationToken.None);
 
             if (mDisposed || !mPieces.Contains(piece))
                 return;
@@ -215,6 +216,12 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
     // Called after Add/Clear Automation changed the engine's declarations.
     public void NotifyDeclarationsChanged()
     {
+        if (mDataContext != null && !ReferenceEquals(SynchronizationContext.Current, mDataContext))
+        {
+            mDataContext.Post(_ => NotifyDeclarationsChanged(), null);
+            return;
+        }
+
         try
         {
             mContext.InvalidatePart();
@@ -235,12 +242,15 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
 
     internal int SlotForTest => mSlot;
 
-    public async Task<bool> WriteStateToPartAsync(string base64)
+    public Task<bool> WriteStateToPartAsync(string base64)
+        => OnDataThreadAsync(() => WriteStateToPartCoreAsync(base64));
+
+    async Task<bool> WriteStateToPartCoreAsync(string base64)
     {
         if (mDisposed)
             return false;
 
-        await mRenderLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        await mRenderLock.WaitAsync(CancellationToken.None);
 
         try
         {
@@ -262,12 +272,15 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
         }
     }
 
-    public async Task ClearStateInPartAsync()
+    public Task ClearStateInPartAsync()
+        => OnDataThreadAsync(ClearStateInPartCoreAsync);
+
+    async Task ClearStateInPartCoreAsync()
     {
         if (mDisposed)
             return;
 
-        await mRenderLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        await mRenderLock.WaitAsync(CancellationToken.None);
 
         try
         {
@@ -281,6 +294,47 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
         {
             mRenderLock.Release();
         }
+    }
+
+    Task<T> OnDataThreadAsync<T>(Func<Task<T>> action)
+    {
+        if (mDataContext == null || ReferenceEquals(SynchronizationContext.Current, mDataContext))
+            return action();
+
+        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        mDataContext.Post(async _ =>
+        {
+            try
+            {
+                completion.TrySetResult(await action());
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        }, null);
+        return completion.Task;
+    }
+
+    Task OnDataThreadAsync(Func<Task> action)
+    {
+        if (mDataContext == null || ReferenceEquals(SynchronizationContext.Current, mDataContext))
+            return action();
+
+        var completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        mDataContext.Post(async _ =>
+        {
+            try
+            {
+                await action();
+                completion.TrySetResult(null);
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        }, null);
+        return completion.Task;
     }
 
     void OnBridgeStateChanged(int slot)
@@ -1156,6 +1210,7 @@ internal sealed class VstInstrumentSession : IInstrumentSynthesisSession
     const int MaxRenderSeconds = 600;
 
     readonly IInstrumentSynthesisContext mContext;
+    readonly SynchronizationContext? mDataContext;
     readonly CatalogEntry mEntry;
     readonly VstInstrumentSettings mSettings;
     volatile IReadOnlyList<ParameterInfo> mAutomatedParameters;

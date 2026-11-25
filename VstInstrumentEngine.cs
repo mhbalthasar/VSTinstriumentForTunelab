@@ -751,24 +751,24 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
         var properties = new OrderedMap<PropertyKey, IControllerConfig>
         {
             {
-                ("clap_paths", L("CLAP ??", "CLAP folders")),
-                BuildPathList(clap, L("?? CLAP ??", "Add a CLAP folder"))
+                ("clap_paths", L("CLAP 路径", "CLAP folders")),
+                BuildPathList(clap, L("添加 CLAP 目录", "Add a CLAP folder"))
             },
             {
-                ("vst2_paths", L("VST2 ??", "VST2 folders")),
-                BuildPathList(vst2, L("?? VST2 ??", "Add a VST2 folder"))
+                ("vst2_paths", L("VST2 路径", "VST2 folders")),
+                BuildPathList(vst2, L("添加 VST2 目录", "Add a VST2 folder"))
             },
             {
-                ("vst3_paths", L("VST3 ??", "VST3 folders")),
-                BuildPathList(vst3, L("?? VST3 ??", "Add a VST3 folder"))
+                ("vst3_paths", L("VST3 路径", "VST3 folders")),
+                BuildPathList(vst3, L("添加 VST3 目录", "Add a VST3 folder"))
             },
             {
-                ("lv2_paths", L("LV2 ??", "LV2 folders")),
-                BuildPathList(lv2, L("?? LV2 ??", "Add an LV2 folder"))
+                ("lv2_paths", L("LV2 路径", "LV2 folders")),
+                BuildPathList(lv2, L("添加 LV2 目录", "Add an LV2 folder"))
             },
             {
-                ("au_paths", L("AU ??", "AU folders")),
-                BuildPathList(au, L("?? AU ??", "Add an AU folder"))
+                ("au_paths", L("AU 路径", "AU folders")),
+                BuildPathList(au, L("添加 AU 目录", "Add an AU folder"))
             },
         };
 
@@ -916,7 +916,14 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
     static ILogger Logger => TuneLabContext.Global.GetLogger();
 
     static string L(string zh, string en)
-        => TuneLabContext.Global.Language.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? zh : en;
+    {
+        // A few historical literals were checked in with replacement characters.
+        // Show the English text instead of a garbled Chinese label.
+        if (zh.Contains('\uFFFD'))
+            return en;
+
+        return TuneLabContext.Global.Language.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? zh : en;
+    }
 
     const string SettingGroupPaths = "group_paths";
     const string SettingGroupRender = "group_render";
@@ -953,7 +960,17 @@ internal sealed class SilentSession : IInstrumentSynthesisSession
     public SilentSession(string? message = null, IInstrumentSynthesisContext? context = null)
     {
         mMessage = message;
-        mContext = context;
+
+        // Status is queried from the UI thread; the live context must never be
+        // touched there. Capture the note range once on the data thread.
+        if (context != null && !string.IsNullOrEmpty(message))
+        {
+            foreach (var note in context.Notes)
+            {
+                mStartTime = Math.Min(mStartTime, note.StartTime.Value);
+                mEndTime = Math.Max(mEndTime, note.EndTime.Value);
+            }
+        }
     }
 
     public SynthesisRange? GetNextPendingSynthesisRange(double startTime, double endTime) => null;
@@ -967,20 +984,11 @@ internal sealed class SilentSession : IInstrumentSynthesisSession
     {
         get
         {
-            if (mContext == null || string.IsNullOrEmpty(mMessage))
+            if (string.IsNullOrEmpty(mMessage) || mStartTime > mEndTime)
                 return [];
 
-            double start = double.MaxValue;
-            double end = double.MinValue;
-
-            foreach (var note in mContext.Notes)
-            {
-                start = Math.Min(start, note.StartTime.Value);
-                end = Math.Max(end, note.EndTime.Value);
-            }
-
-            if (start > end)
-                return [];
+            double start = mStartTime;
+            double end = mEndTime;
 
             // Surface "plugin missing / unavailable" as a failed status band
             // instead of leaving the part silently empty.
@@ -1004,5 +1012,6 @@ internal sealed class SilentSession : IInstrumentSynthesisSession
     public void Dispose() { }
 
     readonly string? mMessage;
-    readonly IInstrumentSynthesisContext? mContext;
+    double mStartTime = double.MaxValue;
+    double mEndTime = double.MinValue;
 }
