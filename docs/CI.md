@@ -23,6 +23,17 @@ The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,478 bytes
 `3d6ed75c7b4ab32f9a7c91b7932041bfb16b2dc1716173fc0af1814e17299361`.
 The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
+## 0.1.1 local fix package
+
+Commit `cd13caa` (synthesis thread guard, authoritative scan lists, readable
+scan labels) was built and packaged locally from the existing bridge artifacts
+with `pack.ps1 -SkipBridges`; the installed package is 248,094,389 bytes
+(236.6 MiB), SHA-256
+`276252bca4cbdd57213b7d66370e538b27bb47e95683c0a25a75f101441885c4`.
+The push to `main` should start the same matrix, but this machine could not
+reach GitHub to observe that run. The last observed full matrix is `7c805a6`
+above.
+
 ## Matrix
 
 | Runner | RID | LV2 UI test |
