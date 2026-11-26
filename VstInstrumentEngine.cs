@@ -336,7 +336,8 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
             if (mScanned)
                 return;
 
-            var catalog = PluginCatalogLoader.LoadOrScan(mSettings, Logger, mForceScan);
+            var settings = mSettings.Clone();
+            var catalog = PluginCatalogLoader.LoadOrScan(settings, Logger, mForceScan);
 
             if (!mInited)
                 return;
