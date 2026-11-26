@@ -28,9 +28,9 @@ The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 Commit history through 0.1.2 seeds the standard Windows/macOS/Linux scan folders
 as editable rows, keeps the blank row inserted by `+` visible, and moves the
 first catalog scan off the host/UI thread. Packaged locally from the existing
-bridge artifacts with `pack.ps1 -SkipBridges`: 248,096,901 bytes (236.6 MiB),
+bridge artifacts with `pack.ps1 -SkipBridges`: 248,096,938 bytes (236.6 MiB),
 SHA-256
-`af79fad092d495584158eacb5c354eb7439d2129ced784179b7b801014a5a5d1`.
+`f03fcce41ae137ea34d334fdc4bc5953b0bb110925a4be4a13507fb9216af748`.
 The push to `main` should start the same matrix, but this machine could not
 reach GitHub to observe that run. The last observed full matrix is `7c805a6`
 above.

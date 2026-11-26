@@ -282,12 +282,14 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
             if (clap.Count > 0 || vst2.Count > 0 || vst3.Count > 0 || lv2.Count > 0 || au.Count > 0)
             {
                 // Preserve a migrated format; formats absent from the old host
-                // settings keep the seeded defaults.
-                if (clap.Count > 0) mSettings.ClapPaths = clap;
-                if (vst2.Count > 0) mSettings.Vst2Paths = vst2;
-                if (vst3.Count > 0) mSettings.Vst3Paths = vst3;
-                if (lv2.Count > 0) mSettings.Lv2Paths = lv2;
-                if (au.Count > 0) mSettings.AuPaths = au;
+                // settings still get the standard defaults.
+                var defaults = new VstInstrumentSettings();
+                DefaultScanPaths.Apply(defaults);
+                mSettings.ClapPaths = clap.Count > 0 ? clap : defaults.ClapPaths;
+                mSettings.Vst2Paths = vst2.Count > 0 ? vst2 : defaults.Vst2Paths;
+                mSettings.Vst3Paths = vst3.Count > 0 ? vst3 : defaults.Vst3Paths;
+                mSettings.Lv2Paths = lv2.Count > 0 ? lv2 : defaults.Lv2Paths;
+                mSettings.AuPaths = au.Count > 0 ? au : defaults.AuPaths;
             }
             else if (mSettings.ClapPaths.Count == 0 && mSettings.Vst2Paths.Count == 0
                 && mSettings.Vst3Paths.Count == 0 && mSettings.Lv2Paths.Count == 0
