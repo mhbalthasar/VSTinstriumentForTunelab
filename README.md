@@ -18,7 +18,7 @@ still allows it) x86.
 
 ## Status
 
-First working milestone (0.1.1, SDK 1.2):
+First working milestone (0.1.2, SDK 1.2):
 
 - **CLAP instruments** — scan, load, note/CC/pitch-bend events, parameter
   automation, reset/panic, latency/tail, state and parameter protocol, offline
@@ -32,9 +32,11 @@ First working milestone (0.1.1, SDK 1.2):
 - **Settings UI (SDK 1.2)** — “Scan now” and “Scan range...” buttons. The range
   dialog is a TuneLab-style `PromptInputs` form with per-format path lists;
   paths persist in the extension’s own `scan-paths.json`.
-  The configured lists are authoritative: an empty list scans nothing and
-  never falls back to the
-  usual system plugin folders (unlike the experimental effect host).
+  Standard per-format folders (Windows, macOS and Linux) are seeded once as
+  ordinary editable rows, including 32-bit VST2/VST3 locations on Windows.
+  After that the configured lists are authoritative: an empty list scans
+  nothing and never falls back to the usual system plugin folders. Pressing
+  `+` keeps a blank row visible so the folder picker can be used immediately.
 - **Part panel (SDK 1.2)** — “Open Editor”, “Reload Plugin”, “Add Automation”,
   “Clear Automation”, a multiline **State** field keyed
   `vsti_state_<instrumentId>`, “Capture State” and “Clear State”. Add

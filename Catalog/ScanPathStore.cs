@@ -14,6 +14,10 @@ namespace TuneLab.VstInstruments.Catalog;
 internal sealed class ScanPathFile
 {
     public int Version { get; set; } = 1;
+
+    // Older files predate seeded defaults. Missing means "seed once"; after
+    // that the user's empty list is preserved as an explicit choice.
+    public bool DefaultsInitialized { get; set; }
     public List<string> Clap { get; set; } = [];
     public List<string> Vst2 { get; set; } = [];
     public List<string> Vst3 { get; set; } = [];
@@ -64,6 +68,7 @@ internal static class ScanPathStore
 
             var file = new ScanPathFile
             {
+                DefaultsInitialized = true,
                 Clap = [.. settings.ClapPaths],
                 Vst2 = [.. settings.Vst2Paths],
                 Vst3 = [.. settings.Vst3Paths],

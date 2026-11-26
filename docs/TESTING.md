@@ -47,15 +47,15 @@ It exercises:
 11. UI config probe: settings `Scan now` / `Scan range...` buttons, part
     `Open Editor` / `Reload Plugin` / `Add Automation` / `Clear Automation` /
     `Capture State` / `Clear State`, and the `vsti_state_<instrumentId>` field;
-    saved per-format scan paths and folders added with `+` stay visible in the
-    re-declared form;
+    standard per-format defaults are seeded as rows, saved paths stay visible,
+    and the blank row inserted by `+` survives the re-declared form;
 12. event-pipe connection, host-driven state suppression, automatic capture,
     state store round-trip, reflection write-back and parameter filter;
 13. automation declaration: selected parameters become `param:<id>` lanes;
 14. VST2 editor open/close (Dragonfly Hall Reverb);
 15. VST2 effect filtering on win-x64 and a 32-bit VST2 scan on win-x86.
 
-Last full run (win-x64, 2026-11-25): **all tests passed**. The Linux x64 run
+Last full run (win-x64, 2026-11-26): **all tests passed**. The Linux x64 run
 also passed, including the real LSP Sampler Mono X11 UI probe and the Gtk3
 synthetic UI probe. The native Linux arm64 job runs the same Gtk3 probe.
 
@@ -94,7 +94,8 @@ plugin state round-trip: 58603 bytes
 hard kill + restart: ok
 catalog: 15 entry/entries, 4 format group(s)
 UI config: settings and part buttons present
-scan path form: saved and + added folders stay visible
+default scan paths: CLAP=1, VST2=6, VST3=2, LV2=1, AU=0 (win-x64)
+scan path form: saved, + added and blank rows stay visible
 empty scan roots: empty catalog (no default fallback)
 state store round-trip: ok
 part state write-back: ok

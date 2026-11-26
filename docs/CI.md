@@ -23,13 +23,14 @@ The uploaded `VSTinstriumentForTunelab-tlx` artifact was 255,722,478 bytes
 `3d6ed75c7b4ab32f9a7c91b7932041bfb16b2dc1716173fc0af1814e17299361`.
 The local `dist/VSTinstriumentForTunelab.tlx` is that artifact.
 
-## 0.1.1 local fix package
+## 0.1.2 local fix package
 
-Commit `cd13caa` (synthesis thread guard, authoritative scan lists, readable
-scan labels) was built and packaged locally from the existing bridge artifacts
-with `pack.ps1 -SkipBridges`; the installed package is 248,094,389 bytes
-(236.6 MiB), SHA-256
-`276252bca4cbdd57213b7d66370e538b27bb47e95683c0a25a75f101441885c4`.
+Commit history through 0.1.2 seeds the standard Windows/macOS/Linux scan folders
+as editable rows, keeps the blank row inserted by `+` visible, and moves the
+first catalog scan off the host/UI thread. Packaged locally from the existing
+bridge artifacts with `pack.ps1 -SkipBridges`: 248,096,901 bytes (236.6 MiB),
+SHA-256
+`af79fad092d495584158eacb5c354eb7439d2129ced784179b7b801014a5a5d1`.
 The push to `main` should start the same matrix, but this machine could not
 reach GitHub to observe that run. The last observed full matrix is `7c805a6`
 above.

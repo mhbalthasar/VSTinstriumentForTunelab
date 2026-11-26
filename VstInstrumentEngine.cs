@@ -25,7 +25,11 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
     {
         LoadScanPaths();
         mInited = true;
-        EnsureScanned();
+
+        // Seeded default folders can contain many plugins. Never run the first
+        // catalog scan on the host/UI thread: a cold scan of common VST3
+        // folders can take tens of seconds and would freeze TuneLab startup.
+        StartRescan();
     }
 
     public void Destroy()
@@ -277,14 +281,23 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
 
             if (clap.Count > 0 || vst2.Count > 0 || vst3.Count > 0 || lv2.Count > 0 || au.Count > 0)
             {
-                mSettings.ClapPaths = clap;
-                mSettings.Vst2Paths = vst2;
-                mSettings.Vst3Paths = vst3;
-                mSettings.Lv2Paths = lv2;
-                mSettings.AuPaths = au;
-                ScanPathStore.Save(mSettings);
-                mScanPathsLoaded = true;
+                // Preserve a migrated format; formats absent from the old host
+                // settings keep the seeded defaults.
+                if (clap.Count > 0) mSettings.ClapPaths = clap;
+                if (vst2.Count > 0) mSettings.Vst2Paths = vst2;
+                if (vst3.Count > 0) mSettings.Vst3Paths = vst3;
+                if (lv2.Count > 0) mSettings.Lv2Paths = lv2;
+                if (au.Count > 0) mSettings.AuPaths = au;
             }
+            else if (mSettings.ClapPaths.Count == 0 && mSettings.Vst2Paths.Count == 0
+                && mSettings.Vst3Paths.Count == 0 && mSettings.Lv2Paths.Count == 0
+                && mSettings.AuPaths.Count == 0)
+            {
+                DefaultScanPaths.Apply(mSettings);
+            }
+
+            ScanPathStore.Save(mSettings);
+            mScanPathsLoaded = true;
         }
 
         var render = settings.GetObject(SettingGroupRender);
@@ -322,6 +335,9 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
                 return;
 
             var catalog = PluginCatalogLoader.LoadOrScan(mSettings, Logger, mForceScan);
+
+            if (!mInited)
+                return;
 
             var infos = new OrderedMap<string, InstrumentSourceInfo>();
 
@@ -677,13 +693,36 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
     void LoadScanPaths()
     {
         if (!ScanPathStore.TryLoad(out var file))
+        {
+            // Fresh install: seed the usual per-format folders as ordinary
+            // editable rows. They are saved immediately; the host-side
+            // migration in ApplySettings can still replace individual lists.
+            DefaultScanPaths.Apply(mSettings);
+            ScanPathStore.Save(mSettings);
             return;
+        }
 
         mSettings.ClapPaths = [.. file.Clap];
         mSettings.Vst2Paths = [.. file.Vst2];
         mSettings.Vst3Paths = [.. file.Vst3];
         mSettings.Lv2Paths = [.. file.Lv2];
         mSettings.AuPaths = [.. file.Au];
+
+        // Files from builds before default seeding have no flag. Seed only
+        // when every list is empty; once the flag is saved, an empty list is
+        // the user's explicit choice and must stay empty.
+        if (!file.DefaultsInitialized)
+        {
+            if (mSettings.ClapPaths.Count == 0 && mSettings.Vst2Paths.Count == 0
+                && mSettings.Vst3Paths.Count == 0 && mSettings.Lv2Paths.Count == 0
+                && mSettings.AuPaths.Count == 0)
+            {
+                DefaultScanPaths.Apply(mSettings);
+            }
+
+            ScanPathStore.Save(mSettings);
+        }
+
         mScanPathsLoaded = true;
     }
 
@@ -742,11 +781,21 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
         // settings when that format's list has not been touched yet. Without
         // this, a folder added with + would be replaced by the stale saved
         // list on the next form reconciliation.
-        var clap = values.Map.ContainsKey("clap_paths") ? ReadPaths(values, "clap_paths") : [.. mSettings.ClapPaths];
-        var vst2 = values.Map.ContainsKey("vst2_paths") ? ReadPaths(values, "vst2_paths") : [.. mSettings.Vst2Paths];
-        var vst3 = values.Map.ContainsKey("vst3_paths") ? ReadPaths(values, "vst3_paths") : [.. mSettings.Vst3Paths];
-        var lv2 = values.Map.ContainsKey("lv2_paths") ? ReadPaths(values, "lv2_paths") : [.. mSettings.Lv2Paths];
-        var au = values.Map.ContainsKey("au_paths") ? ReadPaths(values, "au_paths") : [.. mSettings.AuPaths];
+        var clap = values.Map.ContainsKey("clap_paths")
+            ? ReadPaths(values, "clap_paths", includeEmpty: true)
+            : [.. mSettings.ClapPaths];
+        var vst2 = values.Map.ContainsKey("vst2_paths")
+            ? ReadPaths(values, "vst2_paths", includeEmpty: true)
+            : [.. mSettings.Vst2Paths];
+        var vst3 = values.Map.ContainsKey("vst3_paths")
+            ? ReadPaths(values, "vst3_paths", includeEmpty: true)
+            : [.. mSettings.Vst3Paths];
+        var lv2 = values.Map.ContainsKey("lv2_paths")
+            ? ReadPaths(values, "lv2_paths", includeEmpty: true)
+            : [.. mSettings.Lv2Paths];
+        var au = values.Map.ContainsKey("au_paths")
+            ? ReadPaths(values, "au_paths", includeEmpty: true)
+            : [.. mSettings.AuPaths];
 
         var properties = new OrderedMap<PropertyKey, IControllerConfig>
         {
@@ -795,8 +844,9 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
 
         foreach (string path in paths)
         {
-            if (!string.IsNullOrWhiteSpace(path))
-                elements.Add(PathPickerConfig.CreateFolder(path).WithPickerTitle(title));
+            // Keep blank rows while the form is open. The list controller adds
+            // an empty value for +; filtering it here would make + look dead.
+            elements.Add(PathPickerConfig.CreateFolder(path).WithPickerTitle(title));
         }
 
         return ListConfig.Create(elements,
@@ -812,14 +862,14 @@ public sealed class VstInstrumentEngine : IInstrumentSynthesisEngine, IExtension
         return $"{entry.FormatDisplay} · {vendor} · {entry.Locator}";
     }
 
-    static List<string> ReadPaths(PropertyObject settings, string key)
+    static List<string> ReadPaths(PropertyObject settings, string key, bool includeEmpty = false)
     {
         var result = new List<string>();
         var array = settings.GetValue(key, PropertyArray.Empty);
 
         foreach (var value in array)
         {
-            if (value.ToString(out var path) && !string.IsNullOrWhiteSpace(path))
+            if (value.ToString(out var path) && (includeEmpty || !string.IsNullOrWhiteSpace(path)))
                 result.Add(path);
         }
 

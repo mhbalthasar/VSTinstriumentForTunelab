@@ -62,6 +62,7 @@ internal static class Program
             EmptyCatalogProbe();
             CatalogProbe();
             UiConfigProbe();
+            DefaultScanPathsProbe();
             ScanPathConfigProbe();
             StateStoreProbe();
             StateWriterProbe();
@@ -672,6 +673,48 @@ internal static class Program
         Console.WriteLine("  empty scan roots: empty catalog (no default fallback)");
     }
 
+    static void DefaultScanPathsProbe()
+    {
+        var expectedClap = DefaultScanPaths.Clap()
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .ToList();
+
+        Check(expectedClap.Count > 0, "no default CLAP scan folders were produced for this platform");
+
+        // This is the upgrade shape: an existing, empty 0.1.1 file without the
+        // defaultsInitialized flag. It must seed exactly once.
+        Directory.CreateDirectory(CatalogPaths.DataRoot);
+        File.WriteAllText(ScanPathStore.FilePath,
+            """{"version":1,"clap":[],"vst2":[],"vst3":[],"lv2":[],"au":[]}""");
+
+        var engine = new VstInstrumentEngine();
+        var load = typeof(VstInstrumentEngine).GetMethod("LoadScanPaths",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        load.Invoke(engine, null);
+
+        var settingsField = typeof(VstInstrumentEngine).GetField("mSettings",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var settings = (VstInstrumentSettings)settingsField.GetValue(engine)!;
+
+        Check(settings.ClapPaths.SequenceEqual(expectedClap),
+            "the seeded CLAP defaults are not the platform defaults");
+
+        Check(File.ReadAllText(ScanPathStore.FilePath).Contains("defaultsInitialized", StringComparison.Ordinal),
+            "the seeded scan-path file was not marked as initialized");
+
+        var build = typeof(VstInstrumentEngine).GetMethod("BuildScanPathConfig",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        var config = (ObjectConfig)build.Invoke(engine, [PropertyObject.Empty])!;
+        var list = config.Properties.First(kv => kv.Key.Id == "clap_paths").Value as ListConfig;
+
+        Check(list != null && list.Elements.Count == expectedClap.Count
+            && list.Elements.Select(e => (e as PathPickerConfig)?.DefaultValue).SequenceEqual(expectedClap),
+            "the default CLAP folders are not visible in the scan form");
+
+        Console.WriteLine($"  default scan paths: CLAP={settings.ClapPaths.Count}, VST2={settings.Vst2Paths.Count}, "
+            + $"VST3={settings.Vst3Paths.Count}, LV2={settings.Lv2Paths.Count}, AU={settings.AuPaths.Count}");
+    }
+
     static void ScanPathConfigProbe()
     {
         var engine = new VstInstrumentEngine();
@@ -710,7 +753,22 @@ internal static class Program
             && editedList.Elements[1] is PathPickerConfig { DefaultValue: added },
             "a folder added with + is lost on the next form reconciliation");
 
-        Console.WriteLine("  scan path form: saved and + added folders stay visible");
+        // + inserts an empty default value before the user picks a folder. The
+        // row must survive reconciliation so the + button visibly reacts.
+        var blankValues = new PropertyObject(new Map<string, PropertyValue>
+        {
+            ["clap_paths"] = PropertyValue.Create(new PropertyArray(
+                [PropertyValue.Create(saved), PropertyValue.Create(string.Empty)])),
+        });
+
+        var blank = (ObjectConfig)build.Invoke(engine, [blankValues])!;
+        var blankList = blank.Properties.First(kv => kv.Key.Id == "clap_paths").Value as ListConfig;
+
+        Check(blankList != null && blankList.Elements.Count == 2
+            && blankList.Elements[1] is PathPickerConfig { DefaultValue: "" },
+            "the empty row inserted by + is filtered out before the user can pick a folder");
+
+        Console.WriteLine("  scan path form: saved, + added and blank rows stay visible");
     }
 
     static void UiConfigProbe()
